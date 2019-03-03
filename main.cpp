@@ -186,4 +186,4 @@ int main(int argc, char** argv)
 }
 
 #include <glad/glad.c>
-#include <platformer.cpp>
+#include <platformer_cpp.h>
