@@ -36,6 +36,11 @@ void draw_aabb(v2 a, v2 b)
 	gl_line(gfx, d.x, d.y, 0, a.x, a.y, 0);
 }
 
+void draw_aabb(aabb_t box)
+{
+	draw_aabb(box.min, box.max);
+}
+
 void draw_half_circle(v2 a, v2 b)
 {
 	v2 u = b - a;
