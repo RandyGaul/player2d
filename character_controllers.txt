@@ -1,0 +1,90 @@
+An Approach to Character Controllers
+
+The Pieces
+	Detect collisions
+	Resolve collisions
+	Share information about collisions
+	API and Abstraction (the hardest part)
+
+Some Strategies
+
+Pre-built
+	Not-full featured
+	Good starting point
+	Typically intermingled with a specific technology (dependency)
+
+Intra physics engine
+	lots of callbacks
+	duplicated state
+	physics engine as a dependency
+
+Custom Solution
+	No dependencies
+	More easily extended
+	More reusable
+	Simpler
+	Less state duplication and more centralized
+	Can have "optional" addons (like out-of-the-box support for specific technologies)
+
+Go with a custom solution
+	Choose good algorithms (I'll help)
+	Choose good constraints and limitations (I'll help)
+	Design a good API and abstraction (I'll offer some advice, and a barebones example)
+
+Key Observation
+	The tech is easy
+	The hard part is _choices_
+		Which algorithm, what API, what constraint
+	You're all smart, and can figure the tech out
+	Spend more time practicing your product development skills
+	Make a useful tool, and then use it to make a nice product
+	In our case the tool is a character controller abstraction
+	The product is a game
+
+Detecting Collisions
+	Limit rotations to *none*
+	Use GJK to implement a Time of Impact solver
+	Solve for the TOI with Conservative Advancement
+
+Resolving Collisions
+	Detect all intersecting planes
+	Seidel solver to press away
+	Cap iterations
+	Add logic to handle numerically sensitive cases (like near-anti-parallel normals)
+
+Sharing Collision Information
+	Time of impact
+	Energy lost 1/2mv^2 (or just velocity deltas)
+	Some energy graphs
+	Points of collision, and normals
+
+Creating a Strong API
+	Extremely difficult and subjective
+	The "real meat" of the topic
+
+Some Useful Tools
+	State machines
+	Enter/Exit conditions
+	Quantifier of collision information (on ground, on slope, is sliding, touching wall, touching ceiling,  hit corner, standing on edge, can duck, can stand up, can open door)
+	Timers
+	Get ground reference
+	Can move forward
+	What happens if I press X (reentrant)
+	Player input intent transformation layer
+
+Identify Which Tools to Isolate
+	Minimize dependencies across systems
+	Collision detection
+	TOI calculation
+	Aggregating collision results
+	Interfacing the above with a specific physics technology (mirroring a trigger volume in the physics engine)
+	Debug rendering
+	Player intent layer
+
+Do not Isolate Bad Candidates
+	Marriage with systems is OK
+	Data duplication is OK
+	Code duplication is OK
+	Just make sure to *consciously* decide when/how
+	Game states, rendering, timers, events, animations/states, camera, interpreting player intents
+	Spaghetti it up!
