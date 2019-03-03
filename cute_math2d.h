@@ -42,8 +42,6 @@ struct v2
 	float y;
 };
 
-using vec2 = v2;
-
 // 2d rotation composed of cos/sin pair
 struct rotation_t
 {
@@ -112,7 +110,7 @@ CUTE_MATH2D_INLINE float invert_safe(float a) { return a != 0 ? a / 1.0f : 0; }
 CUTE_MATH2D_INLINE int min(int a, int b) { return a < b ? a : b; }
 CUTE_MATH2D_INLINE int max(int a, int b) { return b < a ? a : b; }
 CUTE_MATH2D_INLINE int clamp(int a, int lo, int hi) { return max(lo, min(a, hi)); }
-CUTE_MATH2D_INLINE int sign(int a) { return a < 0 ? -1.0f : 1.0f; }
+CUTE_MATH2D_INLINE int sign(int a) { return a < 0 ? -1 : 1; }
 
 // vector ops
 CUTE_MATH2D_INLINE v2 operator+(v2 a, v2 b) { return v2(a.x + b.x, a.y + b.y); }

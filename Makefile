@@ -1,2 +1,2 @@
 player2d : main.cpp
-	g++ -I. main.cpp -o $@ -lSDL2 -fpermissive
+	g++ -I. -L. main.cpp -o $@ -lSDL2 -std=c++11 -fpermissive

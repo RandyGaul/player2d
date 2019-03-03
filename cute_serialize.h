@@ -721,6 +721,7 @@ serialize_type_t serialize_get_type(serialize_t* io)
 	return io->type;
 }
 
+#ifndef SERIALIZE_NO_UNIT_TESTS
 #define SERIALIZE_UNIT_TEST_ASSERT(x) do { if (!(x)) { errors = SERIALIZE_FAILURE; goto end; } } while (0)
 
 int serialize_do_unit_tests()
@@ -1022,6 +1023,8 @@ end:
 
 	return errors;
 }
+
+#endif // SERIALIZE_NO_UNIT_TESTS
 
 #endif // CUTE_SERIALIZE_IMPLEMENTATION_ONCE
 #endif // CUTE_SERIALIZE_IMPLEMENTATION

@@ -15,6 +15,7 @@
 #define CUTE_PNG_IMPLEMENTATION
 #include <cute_png.h>
 
+#define SERIALIZE_NO_UNIT_TESTS
 #define CUTE_SERIALIZE_IMPLEMENTATION
 #include <cute_serialize.h>
 
