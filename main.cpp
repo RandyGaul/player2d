@@ -74,6 +74,18 @@ void main_loop()
 		case SDL_QUIT:
 			application_running = 0;
 			break;
+
+		case SDL_KEYDOWN:
+		{
+			SDL_Keycode key = event.key.keysym.sym;
+			if (key == SDLK_a) ; // key a was pressed down
+		}	break;
+
+		case SDL_KEYUP:
+		{
+			SDL_Keycode key = event.key.keysym.sym;
+			if (key == SDLK_a) ; // key a was released
+		}	break;
 		}
 	}
 
