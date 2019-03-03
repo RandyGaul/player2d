@@ -11,7 +11,9 @@ struct player2d_t
 };
 
 /*
-	
+	is on ground
+	is on edge
+
 */
 
 #endif // PLAYER2D_H

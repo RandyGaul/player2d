@@ -82,7 +82,7 @@ void sdl_setup()
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
 	// set double buffer
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -92,15 +92,13 @@ void sdl_setup()
 
 	SDL_GL_CreateContext(window);
 
-#ifndef __EMSCRIPTEN__
-	gladLoadGLES2Loader(SDL_GL_GetProcAddress);
+	gladLoadGLLoader(SDL_GL_GetProcAddress);
 	int major, minor;
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor);
-	printf("SDL says running on OpenGL ES version %d.%d\n", major, minor);
-	printf("Glad says OpenGL ES version : %d.%d\n", GLVersion.major, GLVersion.minor);
-	printf("OpenGL says : ES %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
-#endif
+	printf("SDL says running on OpenGL version %d.%d\n", major, minor);
+	printf("Glad says OpenGL version : %d.%d\n", GLVersion.major, GLVersion.minor);
+	printf("OpenGL says : GL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 }
 
 void cute_gl_setup()
