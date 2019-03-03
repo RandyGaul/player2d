@@ -25,6 +25,9 @@
 #include <player2d.h>
 #include <iostream>
 #include <platformer.h>
+using capsule_t = c2Capsule;
+inline c2v v2c2(v2 v) { return c2V(v.x, v.y); }
+inline v2 c2v2(c2v v) { return v2(v.x, v.y); }
 
 int application_running = 1;
 SDL_Window* window;
@@ -32,6 +35,10 @@ gl_context_t* gfx;
 //gl_shader_t font_shader;
 //gl_renderable_t font_renderable;
 float projection[16];
+
+#include <debug_draw.h>
+#include <player2d.h>
+#include <iostream>
 
 float calc_dt()
 {
@@ -75,6 +82,11 @@ void main_loop()
 	UpdatePlatformer(dt);
 
 	//gl_line(gfx, 0, 0, 0, 100, 100, 0);
+
+	circle_t circle;
+	circle.p = v2(-50, 25);
+	circle.r = 30;
+	draw_circle(circle);
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
 }
