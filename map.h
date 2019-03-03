@@ -20,7 +20,7 @@ aabb_t get_tile_bounds(map_t* map, int x, int y)
 	float half_h = (float)(map->h * TILE_WH / 2);
 	float x0 = (float)x * TILE_WH - half_w;
 	float y0 = (float)y * TILE_WH - half_h;
-	return make_aabb(v2(x0, y0), TILE_WH, TILE_WH);
+	return make_aabb(v2(x0 + TILE_WH / 2, y0 + TILE_WH / 2), TILE_WH, TILE_WH);
 }
 
 void draw_map(map_t* map)
@@ -29,8 +29,11 @@ void draw_map(map_t* map)
 	{
 		int x = i % map->w;
 		int y = i / map->h;
-		aabb_t tile_box = get_tile_bounds(map, x, y);
-		draw_aabb(tile_box);
+		int id = get_tile_id(map, x, y);
+		if (id) {
+			aabb_t tile_box = get_tile_bounds(map, x, y);
+			draw_aabb(tile_box);
+		}
 	}
 }
 
@@ -42,9 +45,12 @@ void load_map(map_t* map, const char* path)
 	int count = map->w * map->h;
 	map->tiles = (int*)malloc(sizeof(int) * count);
 	map->count = count;
-	for (int i = 0; i < count; ++i)
+	for (int y = map->h - 1; y >= 0; --y)
 	{
-		fscanf(fp, "%d", map->tiles + i);
+		for (int x = 0; x < map->w; ++x)
+		{
+			fscanf(fp, "%d", map->tiles + y * map->w + x);
+		}
 	}
 }
 

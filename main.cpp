@@ -92,6 +92,7 @@ void main_loop()
 	}
 
 	UpdatePlatformer(dt);
+	draw_map(&map);
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
 }
@@ -187,6 +188,7 @@ int main(int argc, char** argv)
 {
 	sdl_setup();
 	cute_gl_setup();
+	load_map(&map, "map.txt");
 
 	InitPlatformer();
 
