@@ -24,6 +24,7 @@
 
 #include <player2d.h>
 #include <iostream>
+#include <platformer.h>
 
 int application_running = 1;
 SDL_Window* window;
@@ -71,7 +72,9 @@ void main_loop()
 		}
 	}
 
-	gl_line(gfx, 0, 0, 0, 100, 100, 0);
+	UpdatePlatformer(dt);
+
+	//gl_line(gfx, 0, 0, 0, 100, 100, 0);
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
 }
@@ -79,7 +82,7 @@ void main_loop()
 void sdl_setup()
 {
 	SDL_Init(SDL_INIT_VIDEO);
-	window = SDL_CreateWindow("player2d character controller demo", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+	window = SDL_CreateWindow("player2d character controller demo", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
@@ -168,6 +171,8 @@ int main(int argc, char** argv)
 	sdl_setup();
 	cute_gl_setup();
 
+	InitPlatformer();
+
 	while (application_running)
 		main_loop();
 
@@ -178,3 +183,4 @@ int main(int argc, char** argv)
 }
 
 #include <glad/glad.c>
+#include <platformer.cpp>
