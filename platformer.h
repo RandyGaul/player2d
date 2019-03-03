@@ -3,7 +3,7 @@
 
 struct player2d_t
 {
-	v2 pos;
+	v2 pos, vel;
 	aabb_t box;
 	capsule_t capsule;
 };
