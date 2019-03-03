@@ -14,9 +14,6 @@ struct vertex_t
 	color_t col;
 };
 
-#include <vector>
-std::vector<vertex_t> g_verts;
-
 void draw_poly(v2* verts, int count)
 {
 	for (int i = 0; i < count; ++i)

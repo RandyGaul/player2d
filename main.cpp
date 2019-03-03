@@ -15,10 +15,6 @@
 #define CUTE_PNG_IMPLEMENTATION
 #include <cute_png.h>
 
-#define SERIALIZE_NO_UNIT_TESTS
-#define CUTE_SERIALIZE_IMPLEMENTATION
-#include <cute_serialize.h>
-
 #include <cute_coroutine.h>
 #include <cute_math2d.h>
 
@@ -86,7 +82,7 @@ void main_loop()
 
 	circle_t circle;
 	circle.p = v2(-50, 25);
-	circle.r = 30;
+	circle.r = 100;
 	draw_circle(circle);
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
