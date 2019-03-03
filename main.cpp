@@ -34,6 +34,7 @@ gl_context_t* gfx;
 float projection[16];
 
 #include <debug_draw.h>
+#include <map.h>
 #include <player2d.h>
 #include <iostream>
 
@@ -77,13 +78,6 @@ void main_loop()
 	}
 
 	UpdatePlatformer(dt);
-
-	//gl_line(gfx, 0, 0, 0, 100, 100, 0);
-
-	circle_t circle;
-	circle.p = v2(-50, 25);
-	circle.r = 100;
-	draw_circle(circle);
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
 }
