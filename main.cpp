@@ -38,11 +38,8 @@ float projection[16];
 #include <player2d.h>
 #include <iostream>
 
-<<<<<<< HEAD
 player2d_t thePlayer;
-=======
 map_t map;
->>>>>>> dab79b59902fb36102e8a01a3440c8e2d59292e1
 
 float calc_dt()
 {
@@ -80,18 +77,6 @@ void main_loop()
 		case SDL_QUIT:
 			application_running = 0;
 			break;
-
-		case SDL_KEYDOWN:
-		{
-			SDL_Keycode key = event.key.keysym.sym;
-			if (key == SDLK_a) ; // key a was pressed down
-		}	break;
-
-		case SDL_KEYUP:
-		{
-			SDL_Keycode key = event.key.keysym.sym;
-			if (key == SDLK_a) ; // key a was released
-		}	break;
 		}
 	}
 
