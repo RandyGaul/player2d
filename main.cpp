@@ -84,10 +84,6 @@ void main_loop()
 
 	//gl_line(gfx, 0, 0, 0, 100, 100, 0);
 
-	circle_t circle;
-	circle.p = v2(-50, 25);
-	circle.r = 30;
-	draw_circle(circle);
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
 }
@@ -196,4 +192,4 @@ int main(int argc, char** argv)
 }
 
 #include <glad/glad.c>
-#include <platformer.cpp>
+#include <platformer_cpp.h>
