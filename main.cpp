@@ -38,6 +38,8 @@ float projection[16];
 #include <player2d.h>
 #include <iostream>
 
+player2d_t thePlayer;
+
 float calc_dt()
 {
 	static int first = 1;
