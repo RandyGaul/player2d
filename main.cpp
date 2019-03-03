@@ -112,7 +112,7 @@ void cute_gl_setup()
 
 	std::cout << "13" << std::endl;
 
-#define SHADER_STR(x) "#version 300 es\n" #x
+#define SHADER_STR(x) "#version 330\n" #x
 
 	const char* vs = SHADER_STR(
 		uniform mat4 u_mvp;
