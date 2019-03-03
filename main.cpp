@@ -22,12 +22,13 @@
 #include <cute_coroutine.h>
 #include <cute_math2d.h>
 
-#include <player2d.h>
-#include <iostream>
-#include <platformer.h>
 using capsule_t = c2Capsule;
 inline c2v v2c2(v2 v) { return c2V(v.x, v.y); }
 inline v2 c2v2(c2v v) { return v2(v.x, v.y); }
+
+#include <player2d.h>
+#include <iostream>
+#include <platformer.h>
 
 int application_running = 1;
 SDL_Window* window;
