@@ -23,6 +23,7 @@
 #include <cute_math2d.h>
 
 #include <player2d.h>
+#include <iostream>
 
 int application_running = 1;
 SDL_Window* window;
@@ -103,9 +104,13 @@ void sdl_setup()
 
 void cute_gl_setup()
 {
+	std::cout << "12" << std::endl;
+
 	int clear_bits = GL_COLOR_BUFFER_BIT;
 	int settings_bits = 0;
 	gfx = gl_make_ctx(32, clear_bits, settings_bits);
+
+	std::cout << "13" << std::endl;
 
 #define SHADER_STR(x) "#version 300 es\n" #x
 
