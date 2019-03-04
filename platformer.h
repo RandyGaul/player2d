@@ -7,6 +7,7 @@ struct player2d_t
 	aabb_t box;
 	capsule_t capsule;
 	float height;
+	bool onGround;
 };
 
 /*

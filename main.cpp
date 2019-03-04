@@ -118,7 +118,7 @@ void main_loop()
 		thePlayer.vel.x = 0;
 	}
 
-	if(w_is_pressed)
+	if(w_is_pressed && thePlayer.onGround)
 	{
 		thePlayer.vel.y = player_jump_speed;
 	}
@@ -139,6 +139,9 @@ void main_loop()
 	player_circle.r = thePlayer.capsule.r;
 	draw_circle(player_circle);
 	draw_aabb(thePlayer.box);
+
+
+	bool hitSomething = false;
 
 	// Collision
 	for (int i = 0; i < map.count; ++i)
@@ -174,10 +177,25 @@ void main_loop()
 					v2 n = c2v2(m.n);
 					thePlayer.pos -= n * m.depths[0];
 					thePlayer.vel -= n * dot(thePlayer.vel, n);
+
+					hitSomething = true;
+
+					if(m.contact_points[0].y < thePlayer.pos.y)
+					{
+						std::cout << m.contact_points[0].y << ", " << thePlayer.pos.y << std::endl;
+						thePlayer.onGround = true;
+					}
+					else
+						thePlayer.onGround = false;
 				}
+
+				std::cout << thePlayer.onGround;
+				
 			}
 		}
 	}
+	if(!hitSomething)
+		thePlayer.onGround = false;
 
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	draw_map(&map);
