@@ -55,7 +55,9 @@ float calc_dt()
 		inv_freq = 1.0 / (double)SDL_GetPerformanceFrequency();
 	}
 
-	return (float)((double)(now - prev) * inv_freq);
+	float dt = (float)((double)(now - prev) * inv_freq);
+	prev = now;
+	return dt;
 }
 
 void swap_buffers()
@@ -69,6 +71,9 @@ void main_loop()
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	static int a_is_down = 0;
+	static int d_is_down = 0;
+
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
@@ -81,13 +86,15 @@ void main_loop()
 		case SDL_KEYDOWN:
 		{
 			SDL_Keycode key = event.key.keysym.sym;
-			if (key == SDLK_a) ; // a was pushed down
+			if (key == SDLK_a) a_is_down = 1;
+			if (key == SDLK_d) d_is_down = 1;
 		}	break;
 
 		case SDL_KEYUP:
 		{
 			SDL_Keycode key = event.key.keysym.sym;
-			if (key == SDLK_a) ; // a was released
+			if (key == SDLK_a) a_is_down = 0;
+			if (key == SDLK_d) d_is_down = 0;
 		}	break;
 		}
 	}
@@ -97,10 +104,19 @@ void main_loop()
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 
 	// gravity
-	thePlayer.vel.y += -0.1f;
+	thePlayer.vel.y += -150.0f * dt;
+
+	float player_speed = 50.0f;
+	if (a_is_down) {
+		thePlayer.vel.x = -player_speed;
+	} else if (d_is_down) {
+		thePlayer.vel.x = player_speed;
+	} else {
+		thePlayer.vel.x = 0;
+	}
 
 	// update the player's position (integrate)
-	thePlayer.pos += thePlayer.vel;
+	thePlayer.pos += thePlayer.vel * dt;
 
 	// update player colliders
 	thePlayer.capsule.a = v2c2(thePlayer.pos + v2(0,thePlayer.height/2.f - thePlayer.capsule.r));
