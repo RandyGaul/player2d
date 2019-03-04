@@ -62,6 +62,7 @@ void swap_buffers()
 void main_loop()
 {
 	float dt = calc_dt();
+	if (dt > (1.0f / 20.0f)) dt = 1.0f / 20.0f;
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -106,7 +107,9 @@ void main_loop()
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 
 	// gravity
-	player.vel.y += -150.0f * dt;
+	if (!player.on_ground) {
+		player.vel.y += -150.0f * dt;
+	}
 
 	float player_speed = 50.0f;
 	float player_jump_speed = 150.0f;
@@ -131,6 +134,8 @@ void main_loop()
 	if(w_is_pressed && player.can_jump)
 	{
 		player.vel.y = player_jump_speed;
+		player.can_jump = 0;
+		player.on_ground = 0;
 	}
 	
 
@@ -144,10 +149,6 @@ void main_loop()
 
 	// draw player
 	draw_capsule(player.capsule);
-
-	int on_ground = 0;
-	int can_jump = 0;
-	int hit = 0;
 
 	// Collision
 	for (int i = 0; i <= map.count; ++i)
@@ -176,25 +177,23 @@ void main_loop()
 			if (m.count) {
 				draw_manifold(m);
 
+				int going_down = dot(player.vel, v2(0, 1)) < 0.85f;
+
 				v2 n = c2v2(m.n);
-				player.pos += n * m.depths[0];
-				player.vel -= n * dot(player.vel, n);
+				player.pos += n * m.depths[0] * 1.005f;
+				player.vel = norm(player.vel) * dot(player.vel, n);
 
-				hit = 1;
-
-				can_jump = max(can_jump, abs(dot(n, v2(0, 1.0f))) > 0.85f);
-				if (on_ground && can_jump) player.can_jump = 1;
-
-				if(m.contact_points[0].y < player.pos.y - (PLAYER_HEIGHT / (3.0f / 4.0f)))
+				float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) * (3.0f / 4.0f));
+				int hit_near_feet = m.contact_points[0].y < threshold;
+				if(hit_near_feet && going_down)
 				{
-					on_ground = 1;
+					player.on_ground = 1;
+					player.can_jump = 1;
+					player.vel.y = 0;
 				}
 			}
 		}
 	}
-
-	player.on_ground = on_ground;
-	player.can_jump = can_jump;
 
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	draw_map(&map);
