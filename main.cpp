@@ -94,17 +94,67 @@ void main_loop()
 
 	UpdatePlatformer(dt);
 
+	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
+
 	// gravity
-	thePlayer.vel.y += -1;
+	thePlayer.vel.y += -0.1f;
 
 	// update the player's position (integrate)
 	thePlayer.pos += thePlayer.vel;
 
+	// update player colliders
 	thePlayer.capsule.a = v2c2(thePlayer.pos + v2(0,thePlayer.height/2.f - thePlayer.capsule.r));
-	thePlayer.capsule.b = v2c2(thePlayer.pos - v2(0,thePlayer.height/2.f + thePlayer.capsule.r));
+	thePlayer.capsule.b = v2c2(thePlayer.pos + v2(0,-thePlayer.height/2.f + thePlayer.capsule.r));
+	thePlayer.box = make_aabb(thePlayer.pos, 40, 60);
 
-	draw_capsule(thePlayer.capsule);
+	// draw player
+	//draw_capsule(thePlayer.capsule);
+	circle_t player_circle;
+	player_circle.p = thePlayer.pos;
+	player_circle.r = thePlayer.capsule.r;
+	draw_circle(player_circle);
+	draw_aabb(thePlayer.box);
 
+	// Collision
+	for (int i = 0; i < map.count; ++i)
+	{
+		int x = i % map.w;
+		int y = i / map.h;
+		int id = get_tile_id(&map, x, y);
+		if (id) {
+			aabb_t tile_box = get_tile_bounds(&map, x, y);
+			c2Manifold m;
+			c2AABB tile_aabb;
+			tile_aabb.min = v2c2(tile_box.min);
+			tile_aabb.max = v2c2(tile_box.max);
+
+			//{
+			//	c2AABB player_aabb;
+			//	player_aabb.min = v2c2(thePlayer.box.min);
+			//	player_aabb.max = v2c2(thePlayer.box.max);
+			//	c2AABBtoAABBManifold(player_aabb, tile_aabb, &m);
+			//	if (m.count) {
+			//		draw_manifold(m);
+			//	}
+			//}
+
+			{
+				c2Circle circle;
+				circle.p = v2c2(player_circle.p);
+				circle.r = player_circle.r;
+				c2CircletoAABBManifold(circle, tile_aabb, &m);
+				if (m.count) {
+					draw_manifold(m);
+
+					v2 n = c2v2(m.n);
+					thePlayer.pos -= n * m.depths[0];
+					thePlayer.vel -= n * dot(thePlayer.vel, n);
+				}
+			}
+		}
+	}
+
+	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	draw_map(&map);
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
@@ -205,7 +255,7 @@ int main(int argc, char** argv)
 
 	thePlayer.capsule.r = 20;
 	thePlayer.height = 60;
-	thePlayer.pos = v2(0,0);
+	thePlayer.pos = v2(0.01f, 0);
 
 	InitPlatformer();
 
