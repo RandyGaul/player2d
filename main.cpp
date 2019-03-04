@@ -93,6 +93,18 @@ void main_loop()
 	}
 
 	UpdatePlatformer(dt);
+
+	// gravity
+	thePlayer.vel.y += -1;
+
+	// update the player's position (integrate)
+	thePlayer.pos += thePlayer.vel;
+
+	thePlayer.capsule.a = v2c2(thePlayer.pos + v2(0,thePlayer.height/2.f - thePlayer.capsule.r));
+	thePlayer.capsule.b = v2c2(thePlayer.pos - v2(0,thePlayer.height/2.f + thePlayer.capsule.r));
+
+	draw_capsule(thePlayer.capsule);
+
 	draw_map(&map);
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
@@ -190,6 +202,10 @@ int main(int argc, char** argv)
 	sdl_setup();
 	cute_gl_setup();
 	load_map(&map, "map.txt");
+
+	thePlayer.capsule.r = 20;
+	thePlayer.height = 60;
+	thePlayer.pos = v2(0,0);
 
 	InitPlatformer();
 
