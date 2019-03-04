@@ -1586,7 +1586,10 @@ static int c2Clip(c2v* seg, c2h h)
 	float d0, d1;
 	if ((d0 = c2Dist(h, seg[0])) < 0) out[sp++] = seg[0];
 	if ((d1 = c2Dist(h, seg[1])) < 0) out[sp++] = seg[1];
-	if (d0 * d1 <= 0) out[sp++] = c2Intersect(seg[0], seg[1], d0, d1);
+	if (d0 == 0 && d1 == 0) {
+		out[sp++] = seg[0];
+		out[sp++] = seg[1];
+	} else if (d0 * d1 <= 0) out[sp++] = c2Intersect(seg[0], seg[1], d0, d1);
 	seg[0] = out[0]; seg[1] = out[1];
 	return sp;
 }
@@ -1703,9 +1706,9 @@ void c2CapsuletoPolyManifold(c2Capsule A, const c2Poly* B, const c2x* bx_ptr, c2
 		if (!face_case)
 		{
 			m->count = 1;
-			m->contact_points[0] = b;
+			m->n = c2Neg(c2Norm(ab));
+			m->contact_points[0] = c2Add(a, c2Mulvs(m->n, -A.r));
 			m->depths[0] = A.r - d;
-			m->n = c2Mulvs(ab, 1.0f / d);
 		}
 
 		// 2 contacts if laying on a polygon face nicely

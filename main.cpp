@@ -9,7 +9,6 @@
 #define CUTE_GL_IMPLEMENTATION
 #include <cute_gl.h>
 
-#define CUTE_C2_IMPLEMENTATION
 #include <cute_c2.h>
 
 #define CUTE_PNG_IMPLEMENTATION
@@ -73,6 +72,8 @@ void main_loop()
 
 	static int a_is_down = 0;
 	static int d_is_down = 0;
+	static int w_is_down = 0;
+	static int s_is_down = 0;
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -88,6 +89,8 @@ void main_loop()
 			SDL_Keycode key = event.key.keysym.sym;
 			if (key == SDLK_a) a_is_down = 1;
 			if (key == SDLK_d) d_is_down = 1;
+			if (key == SDLK_w) w_is_down = 1;
+			if (key == SDLK_s) s_is_down = 1;
 		}	break;
 
 		case SDL_KEYUP:
@@ -95,6 +98,8 @@ void main_loop()
 			SDL_Keycode key = event.key.keysym.sym;
 			if (key == SDLK_a) a_is_down = 0;
 			if (key == SDLK_d) d_is_down = 0;
+			if (key == SDLK_w) w_is_down = 0;
+			if (key == SDLK_s) s_is_down = 0;
 		}	break;
 		}
 	}
@@ -104,7 +109,7 @@ void main_loop()
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 
 	// gravity
-	thePlayer.vel.y += -150.0f * dt;
+	//thePlayer.vel.y += -150.0f * dt;
 
 	float player_speed = 50.0f;
 	if (a_is_down) {
@@ -115,6 +120,16 @@ void main_loop()
 		thePlayer.vel.x = 0;
 	}
 
+#if 0
+	if (w_is_down) {
+		thePlayer.vel.y = player_speed;
+	} else if (s_is_down) {
+		thePlayer.vel.y = -player_speed;
+	} else {
+		thePlayer.vel.y = 0;
+	}
+#endif
+
 	// update the player's position (integrate)
 	thePlayer.pos += thePlayer.vel * dt;
 
@@ -124,15 +139,10 @@ void main_loop()
 	thePlayer.box = make_aabb(thePlayer.pos, 40, 60);
 
 	// draw player
-	//draw_capsule(thePlayer.capsule);
-	circle_t player_circle;
-	player_circle.p = thePlayer.pos;
-	player_circle.r = thePlayer.capsule.r;
-	draw_circle(player_circle);
-	draw_aabb(thePlayer.box);
+	draw_capsule(thePlayer.capsule);
 
 	// Collision
-	for (int i = 0; i < map.count; ++i)
+	for (int i = 0; i <= map.count; ++i)
 	{
 		int x = i % map.w;
 		int y = i / map.h;
@@ -154,18 +164,13 @@ void main_loop()
 			//	}
 			//}
 
-			{
-				c2Circle circle;
-				circle.p = v2c2(player_circle.p);
-				circle.r = player_circle.r;
-				c2CircletoAABBManifold(circle, tile_aabb, &m);
-				if (m.count) {
-					draw_manifold(m);
+			c2AABBtoCapsuleManifold(tile_aabb, thePlayer.capsule, &m);
+			if (m.count) {
+				draw_manifold(m);
 
-					v2 n = c2v2(m.n);
-					thePlayer.pos -= n * m.depths[0];
-					thePlayer.vel -= n * dot(thePlayer.vel, n);
-				}
+				v2 n = c2v2(m.n);
+				thePlayer.pos += n * m.depths[0];
+				thePlayer.vel -= n * dot(thePlayer.vel, n);
 			}
 		}
 	}
@@ -271,7 +276,7 @@ int main(int argc, char** argv)
 
 	thePlayer.capsule.r = 20;
 	thePlayer.height = 60;
-	thePlayer.pos = v2(0.01f, 0);
+	thePlayer.pos = v2(0, -15);
 
 	InitPlatformer();
 
@@ -286,3 +291,6 @@ int main(int argc, char** argv)
 
 #include <glad/glad.c>
 #include <platformer_cpp.h>
+
+#define CUTE_C2_IMPLEMENTATION
+#include <cute_c2.h>
