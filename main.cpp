@@ -75,6 +75,8 @@ void main_loop()
 	static int w_is_down = 0;
 	static int s_is_down = 0;
 
+	int w_is_pressed = 0;
+
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
@@ -89,8 +91,10 @@ void main_loop()
 			SDL_Keycode key = event.key.keysym.sym;
 			if (key == SDLK_a) a_is_down = 1;
 			if (key == SDLK_d) d_is_down = 1;
+
 			if (key == SDLK_w) w_is_down = 1;
 			if (key == SDLK_s) s_is_down = 1;
+			if (key == SDLK_w) w_is_pressed = 1;
 		}	break;
 
 		case SDL_KEYUP:
@@ -109,9 +113,10 @@ void main_loop()
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 
 	// gravity
-	//thePlayer.vel.y += -150.0f * dt;
+	thePlayer.vel.y += -150.0f * dt;
 
 	float player_speed = 50.0f;
+	float player_jump_speed = 150.0f;
 	if (a_is_down) {
 		thePlayer.vel.x = -player_speed;
 	} else if (d_is_down) {
@@ -130,6 +135,12 @@ void main_loop()
 	}
 #endif
 
+	if(w_is_pressed && thePlayer.onGround)
+	{
+		thePlayer.vel.y = player_jump_speed;
+	}
+	
+
 	// update the player's position (integrate)
 	thePlayer.pos += thePlayer.vel * dt;
 
@@ -140,6 +151,9 @@ void main_loop()
 
 	// draw player
 	draw_capsule(thePlayer.capsule);
+
+
+	bool hitSomething = false;
 
 	// Collision
 	for (int i = 0; i <= map.count; ++i)
@@ -171,9 +185,24 @@ void main_loop()
 				v2 n = c2v2(m.n);
 				thePlayer.pos += n * m.depths[0];
 				thePlayer.vel -= n * dot(thePlayer.vel, n);
+
+				hitSomething = true;
+
+				if(m.contact_points[0].y < thePlayer.pos.y)
+				{
+					std::cout << m.contact_points[0].y << ", " << thePlayer.pos.y << std::endl;
+					thePlayer.onGround = true;
+				}
+				else
+					thePlayer.onGround = false;
 			}
+
+			//std::cout << thePlayer.onGround;
 		}
 	}
+
+	if(!hitSomething)
+		thePlayer.onGround = false;
 
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	draw_map(&map);
@@ -276,7 +305,7 @@ int main(int argc, char** argv)
 
 	thePlayer.capsule.r = 20;
 	thePlayer.height = 60;
-	thePlayer.pos = v2(0, -15);
+	thePlayer.pos = v2(0, 0);
 
 	InitPlatformer();
 
