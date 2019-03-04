@@ -108,7 +108,7 @@ void main_loop()
 
 	// gravity
 	if (!player.on_ground) {
-		player.vel.y += -150.0f * dt;
+		player.vel.y += -250.0f * dt;
 	}
 
 	float player_speed = 50.0f;
@@ -137,7 +137,6 @@ void main_loop()
 		player.can_jump = 0;
 		player.on_ground = 0;
 	}
-	
 
 	// update the player's position (integrate)
 	player.pos += player.vel * dt;
@@ -181,9 +180,9 @@ void main_loop()
 
 				v2 n = c2v2(m.n);
 				player.pos += n * m.depths[0] * 1.005f;
-				player.vel = norm(player.vel) * dot(player.vel, n);
+				player.vel += norm(player.vel) * dot(player.vel, n);
 
-				float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) * (3.0f / 4.0f));
+				float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
 				int hit_near_feet = m.contact_points[0].y < threshold;
 				if(hit_near_feet && going_down)
 				{
