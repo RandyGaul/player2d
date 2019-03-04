@@ -73,6 +73,7 @@ void main_loop()
 
 	static int a_is_down = 0;
 	static int d_is_down = 0;
+	int w_is_pressed = 0;
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -88,6 +89,7 @@ void main_loop()
 			SDL_Keycode key = event.key.keysym.sym;
 			if (key == SDLK_a) a_is_down = 1;
 			if (key == SDLK_d) d_is_down = 1;
+			if (key == SDLK_w) w_is_pressed = 1;
 		}	break;
 
 		case SDL_KEYUP:
@@ -107,6 +109,7 @@ void main_loop()
 	thePlayer.vel.y += -150.0f * dt;
 
 	float player_speed = 50.0f;
+	float player_jump_speed = 150.0f;
 	if (a_is_down) {
 		thePlayer.vel.x = -player_speed;
 	} else if (d_is_down) {
@@ -114,6 +117,12 @@ void main_loop()
 	} else {
 		thePlayer.vel.x = 0;
 	}
+
+	if(w_is_pressed)
+	{
+		thePlayer.vel.y = player_jump_speed;
+	}
+	
 
 	// update the player's position (integrate)
 	thePlayer.pos += thePlayer.vel * dt;
