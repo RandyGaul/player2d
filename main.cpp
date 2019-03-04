@@ -21,10 +21,6 @@ using capsule_t = c2Capsule;
 inline c2v v2c2(v2 v) { return c2V(v.x, v.y); }
 inline v2 c2v2(c2v v) { return v2(v.x, v.y); }
 
-#include <player2d.h>
-#include <iostream>
-#include <platformer.h>
-
 int application_running = 1;
 SDL_Window* window;
 gl_context_t* gfx;
@@ -35,9 +31,8 @@ float projection[16];
 #include <debug_draw.h>
 #include <map.h>
 #include <player2d.h>
-#include <iostream>
 
-player2d_t thePlayer;
+player2d_t player;
 map_t map;
 
 float calc_dt()
@@ -108,21 +103,19 @@ void main_loop()
 		}
 	}
 
-	UpdatePlatformer(dt);
-
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 
 	// gravity
-	thePlayer.vel.y += -150.0f * dt;
+	player.vel.y += -150.0f * dt;
 
 	float player_speed = 50.0f;
 	float player_jump_speed = 150.0f;
 	if (a_is_down) {
-		thePlayer.vel.x = -player_speed;
+		player.vel.x = -player_speed;
 	} else if (d_is_down) {
-		thePlayer.vel.x = player_speed;
+		player.vel.x = player_speed;
 	} else {
-		thePlayer.vel.x = 0;
+		player.vel.x = 0;
 	}
 
 #if 0
@@ -135,25 +128,26 @@ void main_loop()
 	}
 #endif
 
-	if(w_is_pressed && thePlayer.onGround)
+	if(w_is_pressed && player.can_jump)
 	{
-		thePlayer.vel.y = player_jump_speed;
+		player.vel.y = player_jump_speed;
 	}
 	
 
 	// update the player's position (integrate)
-	thePlayer.pos += thePlayer.vel * dt;
+	player.pos += player.vel * dt;
 
 	// update player colliders
-	thePlayer.capsule.a = v2c2(thePlayer.pos + v2(0,thePlayer.height/2.f - thePlayer.capsule.r));
-	thePlayer.capsule.b = v2c2(thePlayer.pos + v2(0,-thePlayer.height/2.f + thePlayer.capsule.r));
-	thePlayer.box = make_aabb(thePlayer.pos, 40, 60);
+	player.capsule.a = v2c2(player.pos + v2(0, PLAYER_HEIGHT / 2.0f - player.capsule.r));
+	player.capsule.b = v2c2(player.pos + v2(0, -PLAYER_HEIGHT / 2.0f + player.capsule.r));
+	player.box = make_aabb(player.pos, 40, 60);
 
 	// draw player
-	draw_capsule(thePlayer.capsule);
+	draw_capsule(player.capsule);
 
-
-	bool hitSomething = false;
+	int on_ground = 0;
+	int can_jump = 0;
+	int hit = 0;
 
 	// Collision
 	for (int i = 0; i <= map.count; ++i)
@@ -178,31 +172,29 @@ void main_loop()
 			//	}
 			//}
 
-			c2AABBtoCapsuleManifold(tile_aabb, thePlayer.capsule, &m);
+			c2AABBtoCapsuleManifold(tile_aabb, player.capsule, &m);
 			if (m.count) {
 				draw_manifold(m);
 
 				v2 n = c2v2(m.n);
-				thePlayer.pos += n * m.depths[0];
-				thePlayer.vel -= n * dot(thePlayer.vel, n);
+				player.pos += n * m.depths[0];
+				player.vel -= n * dot(player.vel, n);
 
-				hitSomething = true;
+				hit = 1;
 
-				if(m.contact_points[0].y < thePlayer.pos.y)
+				can_jump = max(can_jump, abs(dot(n, v2(0, 1.0f))) > 0.85f);
+				if (on_ground && can_jump) player.can_jump = 1;
+
+				if(m.contact_points[0].y < player.pos.y - (PLAYER_HEIGHT / (3.0f / 4.0f)))
 				{
-					std::cout << m.contact_points[0].y << ", " << thePlayer.pos.y << std::endl;
-					thePlayer.onGround = true;
+					on_ground = 1;
 				}
-				else
-					thePlayer.onGround = false;
 			}
-
-			//std::cout << thePlayer.onGround;
 		}
 	}
 
-	if(!hitSomething)
-		thePlayer.onGround = false;
+	player.on_ground = on_ground;
+	player.can_jump = can_jump;
 
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	draw_map(&map);
@@ -238,13 +230,9 @@ void sdl_setup()
 
 void cute_gl_setup()
 {
-	std::cout << "12" << std::endl;
-
 	int clear_bits = GL_COLOR_BUFFER_BIT;
 	int settings_bits = 0;
 	gfx = gl_make_ctx(32, clear_bits, settings_bits);
-
-	std::cout << "13" << std::endl;
 
 #define SHADER_STR(x) "#version 330\n" #x
 
@@ -303,11 +291,8 @@ int main(int argc, char** argv)
 	cute_gl_setup();
 	load_map(&map, "map.txt");
 
-	thePlayer.capsule.r = 20;
-	thePlayer.height = 60;
-	thePlayer.pos = v2(0, 0);
-
-	InitPlatformer();
+	player.capsule.r = PLAYER_WIDTH;
+	player.pos = v2(0, 0);
 
 	while (application_running)
 		main_loop();
@@ -319,7 +304,6 @@ int main(int argc, char** argv)
 }
 
 #include <glad/glad.c>
-#include <platformer_cpp.h>
 
 #define CUTE_C2_IMPLEMENTATION
 #include <cute_c2.h>

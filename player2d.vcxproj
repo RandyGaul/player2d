@@ -139,7 +139,6 @@
   <ItemGroup>
     <ClInclude Include="debug_draw.h" />
     <ClInclude Include="map.h" />
-    <ClInclude Include="platformer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
