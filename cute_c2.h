@@ -1037,10 +1037,7 @@ float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void*
 			b = b0;
 			n = c2Sub(b, a);
 		}
-		else
-		{
-			break;
-		}
+		else break;
 	}
 
 	if (out_normal) *out_normal = c2SafeNorm(n);

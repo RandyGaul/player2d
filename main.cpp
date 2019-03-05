@@ -108,15 +108,6 @@ void main_loop()
 	}
 #endif
 
-#if 1
-	// fake inputs here by changing values of these variables in the debugger
-	static int fake_inputs = 0;
-	if (fake_inputs) {
-		static int fake_w_is_pressed = 0;
-		w_is_pressed = fake_w_is_pressed;
-	}
-#endif
-
 	float dt = calc_dt();
 	if (dt > (1.0f / 20.0f)) dt = 1.0f / 20.0f;
 
@@ -170,16 +161,6 @@ void main_loop()
 			tile_aabb.min = c2(tile_box.min);
 			tile_aabb.max = c2(tile_box.max);
 
-			//{
-			//	c2AABB player_aabb;
-			//	player_aabb.min = v2c2(thePlayer.box.min);
-			//	player_aabb.max = v2c2(thePlayer.box.max);
-			//	c2AABBtoAABBManifold(player_aabb, tile_aabb, &m);
-			//	if (m.count) {
-			//		draw_manifold(m);
-			//	}
-			//}
-
 			v2 toi_normal;
 			v2 toi_contact;
 			int iters;
@@ -189,28 +170,6 @@ void main_loop()
 				min_toi_normal = toi_normal;
 				min_toi_contact = toi_contact;
 			}
-
-			//c2Manifold m;
-			//c2AABBtoCapsuleManifold(tile_aabb, player.capsule, &m);
-			//if (m.count) {
-			//	draw_manifold(m);
-			//
-			//	int going_down = dot(player.vel, v2(0, -1)) > 0.85f;
-			//
-			//	v2 n = c2(m.n);
-			//	player.pos += n * m.depths[0] * 1.005f;
-			//	player.vel += safe_norm(player.vel) * dot(player.vel, n);
-			//	player_sync_geometry(&player);
-			//
-			//	float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
-			//	int hit_near_feet = m.contact_points[0].y < threshold;
-			//	if(hit_near_feet && going_down)
-			//	{
-			//		player.on_ground = 1;
-			//		player.can_jump = 1;
-			//		player.vel.y = 0;
-			//	}
-			//}
 		}
 	}
 
@@ -247,10 +206,14 @@ void main_loop()
 		hit_ground = 1;
 	}
 
+	// draw and update player
 	draw_capsule(player.capsule);
 	player.pos += player.vel * min_toi * dt;
 	player_sync_geometry(&player);
 
+	// Move player out of potentially colliding configurations. This step is absolutely critical
+	// to ensure the TOI next frame can have "breathing room". The effect is to create a skin around
+	// the player and make sure the player constantly "floats" just above all geometry.
 	player_ngs(&player);
 
 	if (hit_ground) {
