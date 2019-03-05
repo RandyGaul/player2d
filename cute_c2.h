@@ -1015,11 +1015,12 @@ float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void*
 	else ax = *ax_ptr;
 	if (!bx_ptr) bx = c2xIdentity();
 	else bx = *bx_ptr;
-	c2v a, b, n = c2V(0, 0);
+	c2v a, b, n;
 	c2GJKCache cache;
 	cache.count = 0;
 	float d = c2Step(t, A, typeA, &ax, vA, &a, B, typeB, &bx, vB, &b, use_radius, &cache);
 	c2v v = c2Sub(vB, vA);
+	n = c2SafeNorm(c2Sub(b, a));
 
 	int iter = 0;
 	while (d > 1.0e-5f && t < 1)

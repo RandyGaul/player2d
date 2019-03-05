@@ -146,75 +146,48 @@ void main_loop()
 		player.on_ground = 0;
 	}
 
-	float min_toi = 1;
-	v2 min_toi_normal;
-	v2 min_toi_contact;
-
-	for (int i = 0; i <= map.count; ++i)
-	{
-		int x = i % map.w;
-		int y = i / map.h;
-		int id = get_tile_id(&map, x, y);
-		if (id) {
-			aabb_t tile_box = get_tile_bounds(&map, x, y);
-			c2AABB tile_aabb;
-			tile_aabb.min = c2(tile_box.min);
-			tile_aabb.max = c2(tile_box.max);
-
-			v2 toi_normal;
-			v2 toi_contact;
-			int iters;
-			float toi = c2TOI(&tile_aabb, C2_AABB, 0, c2V(0, 0), &player.capsule, C2_CAPSULE, 0, c2(player.vel * dt), 1, (c2v*)&toi_normal, (c2v*)&toi_contact, &iters);
-			if (toi < min_toi) {
-				min_toi = toi;
-				min_toi_normal = toi_normal;
-				min_toi_contact = toi_contact;
-			}
-		}
-	}
-
-	int hit = min_toi > 0 && min_toi < 1;
-
-	// toi debug rendering
-	player2d_t player_at_toi = player;
-	player_at_toi.pos += player.vel * min_toi * dt;
-	player_sync_geometry(&player_at_toi);
-
-	if (hit) {
-		gl_line_color(gfx, 1, 0, 0);
-		circle_t hit_spot;
-		hit_spot.p = min_toi_contact;
-		hit_spot.r = 2;
-		draw_circle(hit_spot);
-	} else {
-		gl_line_color(gfx, 0, 1, 1);
-	}
-
-	draw_capsule(player_at_toi.capsule);
-	gl_line(gfx, player.pos.x, player.pos.y, 0, player_at_toi.pos.x, player_at_toi.pos.y, 0);
-	gl_line_color(gfx, 1, 1, 1);
-
-	// ground/jump logic
-	int going_down = dot(player.vel, v2(0, -1)) > 0.85f;
-	float threshold = player_at_toi.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
-	int hit_near_feet = hit && min_toi_contact.y < threshold;
 	int hit_ground = 0;
-	if(hit_near_feet && going_down)
+
+	float t = 1;
+	v2 vel = player.vel * dt;
+	int max_iters = 100;
+	int iters = 0;
+	while (iters++ < max_iters && t)
 	{
-		player.on_ground = 1;
-		player.can_jump = 1;
-		hit_ground = 1;
+		// sweep player and find toi
+		v2 n;
+		v2 contact;
+		float toi = player_sweep(player.capsule, &n, &contact, vel);
+		t *= toi;
+
+		// move player to toi
+		player.pos += vel * toi;
+		player_sync_geometry(&player);
+
+		// chop off the velocity along the normal
+		vel -= n * dot(vel, n);
+
+		// ngs out of potentially colliding configurations
+		player_ngs(&player);
+
+		// Let player jump and set ground if toi ever hits a flat plane pointing up
+		// while the player is falling, only if they are hit near the feet.
+		int going_down = dot(player.vel, v2(0, -1)) > 0.85f;
+		float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
+		int hit = toi > 0 && toi < 1;
+		int hit_near_feet = hit && contact.y < threshold;
+		if(hit_near_feet && going_down)
+		{
+			player.on_ground = 1;
+			player.can_jump = 1;
+			hit_ground = 1;
+		}
+
+		if (toi == 1) break;
 	}
+	if (iters == max_iters) printf("Failed to exhaust timestep.\n");
 
-	// draw and update player
 	draw_capsule(player.capsule);
-	player.pos += player.vel * min_toi * dt;
-	player_sync_geometry(&player);
-
-	// Move player out of potentially colliding configurations. This step is absolutely critical
-	// to ensure the TOI next frame can have "breathing room". The effect is to create a skin around
-	// the player and make sure the player constantly "floats" just above all geometry.
-	player_ngs(&player);
 
 	if (hit_ground) {
 		player.vel.y = 0;
