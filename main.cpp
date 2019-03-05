@@ -139,6 +139,14 @@ void main_loop()
 	}
 #endif
 
+	// TODO
+	// Sloped tiles
+		// Ignore radius for sloped tiles
+		// Follow slope with shape-cast (to prevent "floating" off of slopes)
+	// Fall off edges
+
+	// pressing jump button applies upward impulse and clears
+	// ground/jump flags
 	if(w_is_pressed && player.can_jump)
 	{
 		player.vel.y = player_jump_speed;
@@ -146,8 +154,7 @@ void main_loop()
 		player.on_ground = 0;
 	}
 
-	int hit_ground = 0;
-
+	// sweep player through the world across the timestep
 	float t = 1;
 	v2 vel = player.vel * dt;
 	int max_iters = 100;
@@ -182,7 +189,6 @@ void main_loop()
 		{
 			player.on_ground = 1;
 			player.can_jump = 1;
-			hit_ground = 1;
 		}
 	}
 	if (iters == max_iters) printf("Failed to exhaust timestep.\n");
@@ -190,12 +196,15 @@ void main_loop()
 	float inv_dt = dt ? 1.0f / dt : 0;
 	player.vel = vel * inv_dt;
 
+	// draw player
 	draw_capsule(player.capsule);
 
+	// special "on the ground" state
 	if (player.on_ground) {
 		player.vel.y = 0;
 	}
 
+	// draw map
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	draw_map(&map);
 
