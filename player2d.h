@@ -58,7 +58,7 @@ float player_sweep(capsule_t capsule, v2* n, v2* contact, v2 vel)
 	return min_toi;
 }
 
-// Non-linear Hauss-Seidel (NGS)
+// Non-linear Gauss-Seidel (NGS)
 // Simply means to adjust positions directly in an iterative fashion, along the solution vector.
 // Used to *gently* press the player out of colliding configurations.
 // This step is absolutely critical to ensure the TOI next frame can have "breathing room".
@@ -69,7 +69,8 @@ void player_ngs(player2d_t* player)
 	int max_iters = 100;
 	int iters = 0;
 	player2d_t player_copy = *player;
-	player_copy.capsule.r += 0.05f;
+	const float skin_factor = 0.025f;
+	player_copy.capsule.r += skin_factor;
 	while (iters++ < 100)
 	{
 		int hit_something = 0;
@@ -89,7 +90,8 @@ void player_ngs(player2d_t* player)
 				if (m.count) {
 					hit_something = 1;
 					v2 n = c2(m.n);
-					player_copy.pos += n * m.depths[0] * 0.2f;
+					const float corrective_factor = 0.2f;
+					player_copy.pos += n * corrective_factor;
 					player_sync_geometry(&player_copy);
 				}
 			}

@@ -202,6 +202,14 @@ void main_loop()
 	// special "on the ground" state
 	if (player.on_ground) {
 		player.vel.y = 0;
+
+		// TODO
+		// Look under player with TOI on AABB
+		// Detect if "can fall", to support standing on edges without slipping off
+
+		// TODO
+		// Implement sloped tiles
+		// Use line segment instead of capsule to walk on sloped tiles
 	}
 
 	// draw map
