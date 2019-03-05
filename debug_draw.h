@@ -49,8 +49,8 @@ void draw_half_circle(v2 a, v2 b)
 	v2 v = ccw90(u);
 	v2 s = v + a;
 	c2m m;
-	m.x = v2c2(norm(u));
-	m.y = v2c2(norm(v));
+	m.x = c2(norm(u));
+	m.y = c2(norm(v));
 
 	int kSegs = 20;
 	float theta = 0;
@@ -58,14 +58,14 @@ void draw_half_circle(v2 a, v2 b)
 	c2v p0;
 	c2SinCos(theta, &p0.y, &p0.x);
 	p0 = c2Mulvs(p0, r);
-	p0 = c2Add(c2Mulmv(m, p0), v2c2(a));
+	p0 = c2Add(c2Mulmv(m, p0), c2(a));
 	for (int i = 0; i < kSegs; ++i)
 	{
 		theta += inc;
 		c2v p1;
 		c2SinCos(theta, &p1.y, &p1.x);
 		p1 = c2Mulvs(p1, r);
-		p1 = c2Add(c2Mulmv(m, p1), v2c2(a));
+		p1 = c2Add(c2Mulmv(m, p1), c2(a));
 		gl_line(gfx, p0.x, p0.y, 0, p1.x, p1.y, 0);
 		p0 = p1;
 	}
@@ -78,8 +78,8 @@ void draw_capsule(capsule_t capsule)
 	b = capsule.b;
 	r = capsule.r;
 	c2v n = c2Norm(c2Sub(b, a));
-	draw_half_circle(c2v2(a), c2v2(c2Add(a, c2Mulvs(n, -r))));
-	draw_half_circle(c2v2(b), c2v2(c2Add(b, c2Mulvs(n, r))));
+	draw_half_circle(c2(a), c2(c2Add(a, c2Mulvs(n, -r))));
+	draw_half_circle(c2(b), c2(c2Add(b, c2Mulvs(n, r))));
 	c2v p0 = c2Add(a, c2Mulvs(c2Skew(n), r));
 	c2v p1 = c2Add(b, c2Mulvs(c2CCW90(n), -r));
 	gl_line(gfx, p0.x, p0.y, 0, p1.x, p1.y, 0);
@@ -90,7 +90,7 @@ void draw_capsule(capsule_t capsule)
 
 void draw_circle(circle_t circle)
 {
-	c2v p = v2c2(circle.p);
+	c2v p = c2(circle.p);
 	float r = circle.r;
 	int kSegs = 40;
 	float theta = 0;
@@ -120,7 +120,7 @@ void draw_manifold(c2Manifold m)
 		c2v p = m.contact_points[i];
 		float d = m.depths[i];
 		circle_t circle;
-		circle.p = c2v2(p);
+		circle.p = c2(p);
 		circle.r = 3.0f;
 		draw_circle(circle);
 		gl_line(gfx, p.x, p.y, 0, p.x + n.x * d, p.y + n.y * d, 0);

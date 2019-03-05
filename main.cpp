@@ -18,8 +18,8 @@
 #include <cute_math2d.h>
 
 using capsule_t = c2Capsule;
-inline c2v v2c2(v2 v) { return c2V(v.x, v.y); }
-inline v2 c2v2(c2v v) { return v2(v.x, v.y); }
+inline c2v c2(v2 v) { return c2V(v.x, v.y); }
+inline v2 c2(c2v v) { return v2(v.x, v.y); }
 
 int application_running = 1;
 SDL_Window* window;
@@ -115,7 +115,6 @@ void main_loop()
 
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 
-	// gravity
 	if (!player.on_ground) {
 		player.vel.y += -250.0f * dt;
 	}
@@ -147,16 +146,14 @@ void main_loop()
 		player.on_ground = 0;
 	}
 
-	// update the player's position (integrate)
 	player.pos += player.vel * dt;
 
-	// update player colliders
 	player_sync_geometry(&player);
 
-	// draw player
 	draw_capsule(player.capsule);
 
-	// Collision
+	float min_toi = 1;
+
 	for (int i = 0; i <= map.count; ++i)
 	{
 		int x = i % map.w;
@@ -166,8 +163,8 @@ void main_loop()
 			aabb_t tile_box = get_tile_bounds(&map, x, y);
 			c2Manifold m;
 			c2AABB tile_aabb;
-			tile_aabb.min = v2c2(tile_box.min);
-			tile_aabb.max = v2c2(tile_box.max);
+			tile_aabb.min = c2(tile_box.min);
+			tile_aabb.max = c2(tile_box.max);
 
 			//{
 			//	c2AABB player_aabb;
@@ -179,13 +176,18 @@ void main_loop()
 			//	}
 			//}
 
+			v2 toi_normal;
+			int iters;
+			float toi = c2TOI(&tile_aabb, C2_AABB, 0, c2V(0, 0), &player.capsule, C2_CAPSULE, 0, c2(player.vel), 1, (c2v*)&toi_normal, &iters);
+			if (toi < min_toi) min_toi = toi;
+
 			c2AABBtoCapsuleManifold(tile_aabb, player.capsule, &m);
 			if (m.count) {
 				draw_manifold(m);
 
 				int going_down = dot(player.vel, v2(0, -1)) > 0.85f;
 
-				v2 n = c2v2(m.n);
+				v2 n = c2(m.n);
 				player.pos += n * m.depths[0] * 1.005f;
 				player.vel += safe_norm(player.vel) * dot(player.vel, n);
 				player_sync_geometry(&player);
@@ -201,6 +203,20 @@ void main_loop()
 			}
 		}
 	}
+
+	player2d_t copy = player;
+	copy.pos += player.vel * min_toi;
+	player_sync_geometry(&copy);
+
+	if (min_toi > 0 && min_toi < 1) {
+		gl_line_color(gfx, 1, 0, 0);
+	} else {
+		gl_line_color(gfx, 0, 1, 1);
+	}
+
+	draw_capsule(copy.capsule);
+	gl_line(gfx, player.pos.x, player.pos.y, 0, copy.pos.x, copy.pos.y, 0);
+	gl_line_color(gfx, 1, 1, 1);
 
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	draw_map(&map);

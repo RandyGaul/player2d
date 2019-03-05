@@ -15,8 +15,8 @@ struct player2d_t
 
 void player_sync_geometry(player2d_t* player)
 {
-	player->capsule.a = v2c2(player->pos + v2(0, PLAYER_HEIGHT / 2.0f - player->capsule.r));
-	player->capsule.b = v2c2(player->pos + v2(0, -PLAYER_HEIGHT / 2.0f + player->capsule.r));
+	player->capsule.a = c2(player->pos + v2(0, PLAYER_HEIGHT / 2.0f - player->capsule.r));
+	player->capsule.b = c2(player->pos + v2(0, -PLAYER_HEIGHT / 2.0f + player->capsule.r));
 	player->box = make_aabb(player->pos, 40, 60);
 }
 
