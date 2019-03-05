@@ -158,11 +158,13 @@ void main_loop()
 		v2 n;
 		v2 contact;
 		float toi = player_sweep(player.capsule, &n, &contact, vel);
-		t *= toi;
 
 		// move player to toi
 		player.pos += vel * toi;
 		player_sync_geometry(&player);
+
+		if (toi == 1) break;
+		t *= toi;
 
 		// chop off the velocity along the normal
 		vel -= n * dot(vel, n);
@@ -182,14 +184,15 @@ void main_loop()
 			player.can_jump = 1;
 			hit_ground = 1;
 		}
-
-		if (toi == 1) break;
 	}
 	if (iters == max_iters) printf("Failed to exhaust timestep.\n");
 
+	float inv_dt = dt ? 1.0f / dt : 0;
+	player.vel = vel * inv_dt;
+
 	draw_capsule(player.capsule);
 
-	if (hit_ground) {
+	if (player.on_ground) {
 		player.vel.y = 0;
 	}
 
