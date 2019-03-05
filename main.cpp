@@ -179,7 +179,9 @@ void main_loop()
 			v2 toi_normal;
 			int iters;
 			float toi = c2TOI(&tile_aabb, C2_AABB, 0, c2V(0, 0), &player.capsule, C2_CAPSULE, 0, c2(player.vel), 1, (c2v*)&toi_normal, &iters);
-			if (toi < min_toi) min_toi = toi;
+			if (toi < min_toi) {
+				min_toi = toi;
+			}
 
 			c2AABBtoCapsuleManifold(tile_aabb, player.capsule, &m);
 			if (m.count) {
@@ -314,7 +316,7 @@ int main(int argc, char** argv)
 	load_map(&map, "map.txt");
 
 	player.capsule.r = PLAYER_WIDTH;
-	player.pos = v2(71.7965088f, 19.9335251f);
+	player.pos = v2(34.3215637f, 7.36820793);
 
 	while (application_running)
 		main_loop();

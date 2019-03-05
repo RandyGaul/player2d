@@ -1024,6 +1024,7 @@ float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void*
 	while (c2Abs(d) > 1.0e-5f && t < 1)
 	{
 		float velocity_bound = c2Abs(c2Dot(c2Norm(c2Sub(b, a)), v));
+		if (!velocity_bound) return 1;
 		float delta = c2Abs(d) / velocity_bound;
 		t += delta;
 		d = c2Step(t, A, typeA, &ax, vA, &a, B, typeB, &bx, vB, &b, use_radius, &cache);
