@@ -183,11 +183,11 @@ void main_loop()
 			if (m.count) {
 				draw_manifold(m);
 
-				int going_down = dot(player.vel, v2(0, 1)) < 0.85f;
+				int going_down = dot(player.vel, v2(0, -1)) > 0.85f;
 
 				v2 n = c2v2(m.n);
 				player.pos += n * m.depths[0] * 1.005f;
-				player.vel += norm(player.vel) * dot(player.vel, n);
+				player.vel += safe_norm(player.vel) * dot(player.vel, n);
 				player_sync_geometry(&player);
 
 				float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
@@ -298,7 +298,7 @@ int main(int argc, char** argv)
 	load_map(&map, "map.txt");
 
 	player.capsule.r = PLAYER_WIDTH;
-	player.pos = v2(0, 0);
+	player.pos = v2(71.7965088f, 19.9335251f);
 
 	while (application_running)
 		main_loop();
