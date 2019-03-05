@@ -61,17 +61,13 @@ void swap_buffers()
 
 void main_loop()
 {
-	float dt = calc_dt();
-	if (dt > (1.0f / 20.0f)) dt = 1.0f / 20.0f;
-
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	static int a_is_down = 0;
 	static int d_is_down = 0;
 	static int w_is_down = 0;
 	static int s_is_down = 0;
 
 	int w_is_pressed = 0;
+	int space_is_pressed = 0;
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -91,6 +87,7 @@ void main_loop()
 			if (key == SDLK_w) w_is_down = 1;
 			if (key == SDLK_s) s_is_down = 1;
 			if (key == SDLK_w) w_is_pressed = 1;
+			if (key == SDLK_SPACE) space_is_pressed = 1;
 		}	break;
 
 		case SDL_KEYUP:
@@ -103,6 +100,18 @@ void main_loop()
 		}	break;
 		}
 	}
+
+#if 0
+	// single-frame debugging, press space to take a timestep of 1/20 fps
+	if (!space_is_pressed) {
+		return;
+	}
+#endif
+
+	float dt = calc_dt();
+	if (dt > (1.0f / 20.0f)) dt = 1.0f / 20.0f;
+
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 
@@ -142,9 +151,7 @@ void main_loop()
 	player.pos += player.vel * dt;
 
 	// update player colliders
-	player.capsule.a = v2c2(player.pos + v2(0, PLAYER_HEIGHT / 2.0f - player.capsule.r));
-	player.capsule.b = v2c2(player.pos + v2(0, -PLAYER_HEIGHT / 2.0f + player.capsule.r));
-	player.box = make_aabb(player.pos, 40, 60);
+	player_sync_geometry(&player);
 
 	// draw player
 	draw_capsule(player.capsule);
@@ -181,6 +188,7 @@ void main_loop()
 				v2 n = c2v2(m.n);
 				player.pos += n * m.depths[0] * 1.005f;
 				player.vel += norm(player.vel) * dot(player.vel, n);
+				player_sync_geometry(&player);
 
 				float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
 				int hit_near_feet = m.contact_points[0].y < threshold;

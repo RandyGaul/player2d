@@ -13,6 +13,13 @@ struct player2d_t
 	int can_jump;
 };
 
+void player_sync_geometry(player2d_t* player)
+{
+	player->capsule.a = v2c2(player->pos + v2(0, PLAYER_HEIGHT / 2.0f - player->capsule.r));
+	player->capsule.b = v2c2(player->pos + v2(0, -PLAYER_HEIGHT / 2.0f + player->capsule.r));
+	player->box = make_aabb(player->pos, 40, 60);
+}
+
 /*
 	x is on ground
 	x can jump
