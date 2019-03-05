@@ -324,7 +324,7 @@ float c2GJK(const void* A, C2_TYPE typeA, const c2x* ax_ptr, const void* B, C2_T
 // from shape A to shape B. out_normal can be NULL. iterations is an optional parameter. use_radius
 // will apply radii for capsules and circles (if set to false, spheres are treated as points and
 // capsules are treated as line segments i.e. rays).
-float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void* B, C2_TYPE typeB, const c2x* bx_ptr, c2v vB, int use_radius, c2v* out_normal, int* iterations);
+float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void* B, C2_TYPE typeB, const c2x* bx_ptr, c2v vB, int use_radius, c2v* out_normal, c2v* out_contact_point, int* iterations);
 
 // Computes 2D convex hull. Will not do anything if less than two verts supplied. If
 // more than C2_MAX_POLYGON_VERTS are supplied extras are ignored.
@@ -390,6 +390,7 @@ C2_INLINE float c2Hmin(c2v a) { return c2Min(a.x, a.y); }
 C2_INLINE float c2Hmax(c2v a) { return c2Max(a.x, a.y); }
 C2_INLINE float c2Len(c2v a) { return c2Sqrt(c2Dot(a, a)); }
 C2_INLINE c2v c2Norm(c2v a) { return c2Div(a, c2Len(a)); }
+C2_INLINE c2v c2SafeNorm(c2v a) { float sq = c2Dot(a, a); return sq ? c2Div(a, c2Len(a)) : c2V(0, 0); }
 C2_INLINE c2v c2Neg(c2v a) { return c2V(-a.x, -a.y); }
 C2_INLINE c2v c2Lerp(c2v a, c2v b, float t) { return c2Add(a, c2Mulvs(c2Sub(b, a), t)); }
 C2_INLINE int c2Parallel(c2v a, c2v b, float kTol)
@@ -1005,7 +1006,7 @@ static C2_INLINE float c2Step(float t, const void* A, C2_TYPE typeA, const c2x* 
 	return d;
 }
 
-float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void* B, C2_TYPE typeB, const c2x* bx_ptr, c2v vB, int use_radius, c2v* out_normal, int* iterations)
+float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void* B, C2_TYPE typeB, const c2x* bx_ptr, c2v vB, int use_radius, c2v* out_normal, c2v* out_contact_point, int* iterations)
 {
 	float t = 0;
 	c2x ax;
@@ -1014,24 +1015,36 @@ float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void*
 	else ax = *ax_ptr;
 	if (!bx_ptr) bx = c2xIdentity();
 	else bx = *bx_ptr;
-	c2v a, b;
+	c2v a, b, n = c2V(0, 0);
 	c2GJKCache cache;
 	cache.count = 0;
 	float d = c2Step(t, A, typeA, &ax, vA, &a, B, typeB, &bx, vB, &b, use_radius, &cache);
 	c2v v = c2Sub(vB, vA);
 
 	int iter = 0;
-	while (c2Abs(d) > 1.0e-5f && t < 1)
+	while (d > 1.0e-5f && t < 1)
 	{
+		++iter;
 		float velocity_bound = c2Abs(c2Dot(c2Norm(c2Sub(b, a)), v));
 		if (!velocity_bound) return 1;
-		float delta = c2Abs(d) / velocity_bound;
+		float delta = d / velocity_bound;
 		t += delta;
-		d = c2Step(t, A, typeA, &ax, vA, &a, B, typeB, &bx, vB, &b, use_radius, &cache);
-		++iter;
+		c2v a0, b0;
+		d = c2Step(t, A, typeA, &ax, vA, &a0, B, typeB, &bx, vB, &b0, use_radius, &cache);
+		if (d)
+		{
+			a = a0;
+			b = b0;
+			n = c2Sub(b, a);
+		}
+		else
+		{
+			break;
+		}
 	}
 
-	if (out_normal) *out_normal = c2Norm(c2Sub(b, a));
+	if (out_normal) *out_normal = c2SafeNorm(n);
+	if (out_contact_point) *out_contact_point = c2Mulvs(c2Add(a, b), 0.5f);
 	if (iterations) *iterations = iter;
 	return t >= 1 ? 1 : t;
 }

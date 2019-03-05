@@ -30,10 +30,10 @@ float projection[16];
 
 #include <debug_draw.h>
 #include <map.h>
-#include <player2d.h>
-
-player2d_t player;
 map_t map;
+
+#include <player2d.h>
+player2d_t player;
 
 float calc_dt()
 {
@@ -108,6 +108,15 @@ void main_loop()
 	}
 #endif
 
+#if 1
+	// fake inputs here by changing values of these variables in the debugger
+	static int fake_inputs = 0;
+	if (fake_inputs) {
+		static int fake_w_is_pressed = 0;
+		w_is_pressed = fake_w_is_pressed;
+	}
+#endif
+
 	float dt = calc_dt();
 	if (dt > (1.0f / 20.0f)) dt = 1.0f / 20.0f;
 
@@ -146,13 +155,9 @@ void main_loop()
 		player.on_ground = 0;
 	}
 
-	player.pos += player.vel * dt;
-
-	player_sync_geometry(&player);
-
-	draw_capsule(player.capsule);
-
 	float min_toi = 1;
+	v2 min_toi_normal;
+	v2 min_toi_contact;
 
 	for (int i = 0; i <= map.count; ++i)
 	{
@@ -161,7 +166,6 @@ void main_loop()
 		int id = get_tile_id(&map, x, y);
 		if (id) {
 			aabb_t tile_box = get_tile_bounds(&map, x, y);
-			c2Manifold m;
 			c2AABB tile_aabb;
 			tile_aabb.min = c2(tile_box.min);
 			tile_aabb.max = c2(tile_box.max);
@@ -177,48 +181,81 @@ void main_loop()
 			//}
 
 			v2 toi_normal;
+			v2 toi_contact;
 			int iters;
-			float toi = c2TOI(&tile_aabb, C2_AABB, 0, c2V(0, 0), &player.capsule, C2_CAPSULE, 0, c2(player.vel), 1, (c2v*)&toi_normal, &iters);
+			float toi = c2TOI(&tile_aabb, C2_AABB, 0, c2V(0, 0), &player.capsule, C2_CAPSULE, 0, c2(player.vel * dt), 1, (c2v*)&toi_normal, (c2v*)&toi_contact, &iters);
 			if (toi < min_toi) {
 				min_toi = toi;
+				min_toi_normal = toi_normal;
+				min_toi_contact = toi_contact;
 			}
 
-			c2AABBtoCapsuleManifold(tile_aabb, player.capsule, &m);
-			if (m.count) {
-				draw_manifold(m);
-
-				int going_down = dot(player.vel, v2(0, -1)) > 0.85f;
-
-				v2 n = c2(m.n);
-				player.pos += n * m.depths[0] * 1.005f;
-				player.vel += safe_norm(player.vel) * dot(player.vel, n);
-				player_sync_geometry(&player);
-
-				float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
-				int hit_near_feet = m.contact_points[0].y < threshold;
-				if(hit_near_feet && going_down)
-				{
-					player.on_ground = 1;
-					player.can_jump = 1;
-					player.vel.y = 0;
-				}
-			}
+			//c2Manifold m;
+			//c2AABBtoCapsuleManifold(tile_aabb, player.capsule, &m);
+			//if (m.count) {
+			//	draw_manifold(m);
+			//
+			//	int going_down = dot(player.vel, v2(0, -1)) > 0.85f;
+			//
+			//	v2 n = c2(m.n);
+			//	player.pos += n * m.depths[0] * 1.005f;
+			//	player.vel += safe_norm(player.vel) * dot(player.vel, n);
+			//	player_sync_geometry(&player);
+			//
+			//	float threshold = player.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
+			//	int hit_near_feet = m.contact_points[0].y < threshold;
+			//	if(hit_near_feet && going_down)
+			//	{
+			//		player.on_ground = 1;
+			//		player.can_jump = 1;
+			//		player.vel.y = 0;
+			//	}
+			//}
 		}
 	}
 
-	player2d_t copy = player;
-	copy.pos += player.vel * min_toi;
-	player_sync_geometry(&copy);
+	int hit = min_toi > 0 && min_toi < 1;
 
-	if (min_toi > 0 && min_toi < 1) {
+	// toi debug rendering
+	player2d_t player_at_toi = player;
+	player_at_toi.pos += player.vel * min_toi * dt;
+	player_sync_geometry(&player_at_toi);
+
+	if (hit) {
 		gl_line_color(gfx, 1, 0, 0);
+		circle_t hit_spot;
+		hit_spot.p = min_toi_contact;
+		hit_spot.r = 2;
+		draw_circle(hit_spot);
 	} else {
 		gl_line_color(gfx, 0, 1, 1);
 	}
 
-	draw_capsule(copy.capsule);
-	gl_line(gfx, player.pos.x, player.pos.y, 0, copy.pos.x, copy.pos.y, 0);
+	draw_capsule(player_at_toi.capsule);
+	gl_line(gfx, player.pos.x, player.pos.y, 0, player_at_toi.pos.x, player_at_toi.pos.y, 0);
 	gl_line_color(gfx, 1, 1, 1);
+
+	// ground/jump logic
+	int going_down = dot(player.vel, v2(0, -1)) > 0.85f;
+	float threshold = player_at_toi.pos.y - ((PLAYER_HEIGHT / 2.0f) - player.capsule.r * (1.0f / 4.0f));
+	int hit_near_feet = hit && min_toi_contact.y < threshold;
+	int hit_ground = 0;
+	if(hit_near_feet && going_down)
+	{
+		player.on_ground = 1;
+		player.can_jump = 1;
+		hit_ground = 1;
+	}
+
+	draw_capsule(player.capsule);
+	player.pos += player.vel * min_toi * dt;
+	player_sync_geometry(&player);
+
+	player_ngs(&player);
+
+	if (hit_ground) {
+		player.vel.y = 0;
+	}
 
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	draw_map(&map);
@@ -316,7 +353,7 @@ int main(int argc, char** argv)
 	load_map(&map, "map.txt");
 
 	player.capsule.r = PLAYER_WIDTH;
-	player.pos = v2(34.3215637f, 7.36820793);
+	player.pos = v2(36.3215637f, 37.36820793f);
 
 	while (application_running)
 		main_loop();
