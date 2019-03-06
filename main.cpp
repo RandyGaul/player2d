@@ -198,10 +198,16 @@ void main_loop()
 
 	// draw player
 	draw_capsule(player.capsule);
+	draw_aabb(player.box);
 
 	// special "on the ground" state
 	if (player.on_ground) {
 		player.vel.y = 0;
+
+		if (player_can_fall(&player, 1)) {
+			player.on_ground = 0;
+			player.can_jump = 0;
+		}
 
 		// TODO
 		// Look under player with TOI on AABB
@@ -308,7 +314,7 @@ int main(int argc, char** argv)
 	cute_gl_setup();
 	load_map(&map, "map.txt");
 
-	player.capsule.r = PLAYER_WIDTH;
+	player.capsule.r = PLAYER_HALF_WIDTH;
 	player.pos = v2(36.3215637f, 37.36820793f);
 
 	while (application_running)

@@ -2,7 +2,7 @@
 #define PLAYER2D_H
 
 #define PLAYER_HEIGHT 55.0f
-#define PLAYER_WIDTH 15.0f
+#define PLAYER_HALF_WIDTH 15.0f
 
 struct player2d_t
 {
@@ -19,7 +19,7 @@ void player_sync_geometry(player2d_t* player)
 {
 	player->capsule.a = c2(player->pos + v2(0, PLAYER_HEIGHT / 2.0f - player->capsule.r));
 	player->capsule.b = c2(player->pos + v2(0, -PLAYER_HEIGHT / 2.0f + player->capsule.r));
-	player->box = make_aabb(player->pos, 40, 60);
+	player->box = make_aabb(player->pos, PLAYER_HALF_WIDTH * 2.0f, PLAYER_HEIGHT);
 }
 
 // sweep player against the world geometry
@@ -102,6 +102,44 @@ void player_ngs(player2d_t* player)
 	player_copy.capsule.r = player->capsule.r;
 	player_sync_geometry(&player_copy);
 	*player = player_copy;
+}
+
+int player_can_fall(player2d_t* player, int pixels_to_fall)
+{
+	float min_toi = 1;
+
+	c2AABB player_aabb;
+	player_aabb.min = c2(player->box.min);
+	player_aabb.max = c2(player->box.max);
+
+	v2 vel_down_10_pixels = v2(0, (float)-pixels_to_fall);
+
+	for (int i = 0; i <= map.count; ++i)
+	{
+		int x = i % map.w;
+		int y = i / map.h;
+		int id = get_tile_id(&map, x, y);
+		if (id) {
+			aabb_t tile_box = get_tile_bounds(&map, x, y);
+			c2AABB tile_aabb;
+			tile_aabb.min = c2(tile_box.min);
+			tile_aabb.max = c2(tile_box.max);
+
+			v2 toi_normal;
+			v2 toi_contact;
+			int iters;
+			float toi = c2TOI(&tile_aabb, C2_AABB, 0, c2V(0, 0), &player_aabb, C2_AABB, 0, c2(vel_down_10_pixels), 1, 0, 0, &iters);
+			if (toi < min_toi) {
+				min_toi = toi;
+			}
+		}
+	}
+
+	if (min_toi == 1.0f) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 #endif // PLAYER2D_H
