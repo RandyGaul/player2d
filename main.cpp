@@ -290,18 +290,29 @@ void main_loop()
 		// Follow slope with shape-cast (to prevent "floating" off of slopes)
 	}
 
-	// draw map
+	// debug draw map
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
 	debug_draw_map(&map);
 
 	static int editor = 0;
 	if (mouse_right_was_pressed) editor = !editor;
 	if (editor) {
+		// TODO
+		// Implement left click + mouse scroll to select/place tiles
+
+		// TODO
+		// Implement map save function
 	}
 
 	// Drawing a sprite with sprite batcher
 	sprite_t tile0 = make_sprite(0, 0, 0, 1.0f, 0, 0);
 	push_sprite(tile0);
+
+	// TODO
+	// Draw background
+
+	// TODO
+	// Add some moveable crates
 
 	// Run cute_spritebatch to find sprite batches.
 	// This is the most basic usage of cute_psritebatch, one defrag, tick and flush per game loop.
