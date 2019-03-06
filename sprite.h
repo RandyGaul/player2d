@@ -1,0 +1,209 @@
+#ifndef SPRITE_H
+#define SPRITE_H
+
+#include <math.h>
+
+#include <glad/glad.h>
+#include <cute_gl.h>
+#include <cute_spritebatch.h>
+#include <cute_png.h>
+
+typedef struct
+{
+	float x, y;
+	float u, v;
+} vertex_t;
+
+#define SPRITE_VERTS_MAX (1024 * 10)
+int sprite_verts_count;
+vertex_t sprite_verts[SPRITE_VERTS_MAX];
+
+// example of a game sprite
+typedef struct
+{
+	SPRITEBATCH_U64 image_id;
+	int depth;
+	float x, y;
+	float sx, sy;
+	float c, s;
+} sprite_t;
+
+sprite_t make_sprite(SPRITEBATCH_U64 image_id, float x, float y, float scale, float angle_radians, int depth)
+{
+	sprite_t s;
+	s.image_id = image_id;
+	s.depth = depth;
+	s.x = x;
+	s.y = y;
+	s.sx = (float)images[s.image_id].w * scale;
+	s.sy = (float)images[s.image_id].h * scale;
+	s.c = cosf(angle_radians);
+	s.s = sinf(angle_radians);
+	return s;
+}
+
+// callbacks for cute_spritebatch.h
+void batch_report(spritebatch_sprite_t* sprites, int count, int texture_w, int texture_h, void* udata)
+{
+	(void)udata;
+	(void)texture_w;
+	(void)texture_h;
+	//printf("begin batch\n");
+	//for (int i = 0; i < count; ++i) printf("\t%llu\n", sprites[i].texture_id);
+	//printf("end batch\n");
+
+	// build the draw call
+	gl_draw_call_t call;
+	call.r = &sprite_renderable;
+	call.textures[0] = (uint32_t)sprites[0].texture_id;
+	call.texture_count = 1;
+
+	// set texture uniform in shader
+	gl_send_texture(call.r->program, "u_sprite_texture", 0);
+
+	// NOTE:
+	// perform any additional sorting here
+
+	// build vertex buffer of quads from all sprite transforms
+	call.verts = sprite_verts + sprite_verts_count;
+	call.vert_count = count * 6;
+	sprite_verts_count += call.vert_count;
+	assert(sprite_verts_count < SPRITE_VERTS_MAX);
+
+	vertex_t* verts = (vertex_t*)call.verts;
+	for (int i = 0; i < count; ++i)
+	{
+		spritebatch_sprite_t* s = sprites + i;
+
+		v2 quad[] = {
+			{ -0.5f,  0.5f },
+			{  0.5f,  0.5f },
+			{  0.5f, -0.5f },
+			{ -0.5f, -0.5f },
+		};
+
+		for (int j = 0; j < 4; ++j)
+		{
+			float x = quad[j].x;
+			float y = quad[j].y;
+
+			// scale sprite about origin
+			x *= s->sx;
+			y *= s->sy;
+
+			// rotate sprite about origin
+			float x0 = s->c * x - s->s * y;
+			float y0 = s->s * x + s->c * y;
+			x = x0;
+			y = y0;
+
+			// translate sprite into the world
+			x += s->x;
+			y += s->y;
+
+			quad[j].x = x;
+			quad[j].y = y;
+		}
+
+		// output transformed quad into CPU buffer
+		vertex_t* out_verts = verts + i * 6;
+
+		out_verts[0].x = quad[0].x;
+		out_verts[0].y = quad[0].y;
+		out_verts[0].u = s->minx;
+		out_verts[0].v = s->maxy;
+
+		out_verts[1].x = quad[3].x;
+		out_verts[1].y = quad[3].y;
+		out_verts[1].u = s->minx;
+		out_verts[1].v = s->miny;
+
+		out_verts[2].x = quad[1].x;
+		out_verts[2].y = quad[1].y;
+		out_verts[2].u = s->maxx;
+		out_verts[2].v = s->maxy;
+
+		out_verts[3].x = quad[1].x;
+		out_verts[3].y = quad[1].y;
+		out_verts[3].u = s->maxx;
+		out_verts[3].v = s->maxy;
+
+		out_verts[4].x = quad[3].x;
+		out_verts[4].y = quad[3].y;
+		out_verts[4].u = s->minx;
+		out_verts[4].v = s->miny;
+
+		out_verts[5].x = quad[2].x;
+		out_verts[5].y = quad[2].y;
+		out_verts[5].u = s->maxx;
+		out_verts[5].v = s->miny;
+	}
+
+	// submit call to cute_gl (does not get flushed to screen until `tgFlush` is called)
+	gl_push_draw_call(gfx, call);
+}
+
+void get_pixels(SPRITEBATCH_U64 image_id, void* buffer, int bytes_to_fill, void* udata)
+{
+	(void)udata;
+	memcpy(buffer, images[image_id].pix, bytes_to_fill);
+}
+
+SPRITEBATCH_U64 generate_texture_handle(void* pixels, int w, int h, void* udata)
+{
+	(void)udata;
+	GLuint location;
+	glGenTextures(1, &location);
+	glBindTexture(GL_TEXTURE_2D, location);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	return (SPRITEBATCH_U64)location;
+}
+
+void destroy_texture_handle(SPRITEBATCH_U64 texture_id, void* udata)
+{
+	(void)udata;
+	GLuint id = (GLuint)texture_id;
+	glDeleteTextures(1, &id);
+}
+
+spritebatch_config_t get_demo_config()
+{
+	spritebatch_config_t config;
+	spritebatch_set_default_config(&config);
+	config.pixel_stride = sizeof(cp_pixel_t);
+	config.atlas_width_in_pixels = 1024;
+	config.atlas_height_in_pixels = 1024;
+	config.atlas_use_border_pixels = 0;
+	config.ticks_to_decay_texture = 3;
+	config.lonely_buffer_count_till_flush = 1;
+	config.ratio_to_decay_atlas = 0.5f;
+	config.ratio_to_merge_atlases = 0.25f;
+	config.allocator_context = 0;
+	return config;
+}
+
+void setup_spritebatch()
+{
+	// setup cute_spritebatch configuration
+	// this configuration is specialized to test out the demo. don't use these settings
+	// in your own project. Instead, start with `spritebatch_set_default_config`.
+	spritebatch_config_t config = get_demo_config();
+	//spritebatch_set_default_config(&config); // turn default config off to test out demo
+
+	// assign the 4 callbacks
+	config.batch_callback = batch_report;                       // report batches of sprites from `spritebatch_flush`
+	config.get_pixels_callback = get_pixels;                    // used to retrieve image pixels from `spritebatch_flush` and `spritebatch_defrag`
+	config.generate_texture_callback = generate_texture_handle; // used to generate a texture handle from `spritebatch_flush` and `spritebatch_defrag`
+	config.delete_texture_callback = destroy_texture_handle;    // used to destroy a texture handle from `spritebatch_defrag`
+
+	// initialize cute_spritebatch
+	spritebatch_init(&sb, &config, NULL);
+}
+
+#define push_sprite(sp) \
+	spritebatch_push(&sb, sp.image_id, images[sp.image_id].w, images[sp.image_id].h, sp.x, sp.y, sp.sx, sp.sy, sp.c, sp.s, (SPRITEBATCH_U64)sp.depth)
+
+#endif // SPRITE_H

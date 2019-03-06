@@ -1,27 +1,16 @@
 #ifndef DEBUGDRAW_H
 #define DEBUGDRAW_H
 
-struct color_t
+void draw_poly(c2Poly poly)
 {
-	float r;
-	float g;
-	float b;
-};
-
-struct vertex_t
-{
-	v2 pos;
-	color_t col;
-};
-
-void draw_poly(v2* verts, int count)
-{
+	c2v* verts = poly.verts;
+	int count = poly.count;
 	for (int i = 0; i < count; ++i)
 	{
 		int iA = i;
 		int iB = (i + 1) % count;
-		v2 a = verts[iA];
-		v2 b = verts[iB];
+		c2v a = verts[iA];
+		c2v b = verts[iB];
 		gl_line(gfx, a.x, a.y, 0, b.x, b.y, 0);
 	}
 }

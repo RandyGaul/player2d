@@ -14,18 +14,23 @@
 #define CUTE_PNG_IMPLEMENTATION
 #include <cute_png.h>
 
+#define SPRITEBATCH_IMPLEMENTATION
+#include <cute_spritebatch.h>
+
 #include <cute_coroutine.h>
 #include <cute_math2d.h>
 
 using capsule_t = c2Capsule;
 inline c2v c2(v2 v) { return c2V(v.x, v.y); }
 inline v2 c2(c2v v) { return v2(v.x, v.y); }
+inline aabb_t c2(c2AABB box) { return make_aabb(c2(box.min), c2(box.max)); }
+inline c2AABB c2(aabb_t box) { c2AABB c2_box; c2_box.min = c2(box.min); c2_box.max = c2(box.max); return c2_box; }
 
 int application_running = 1;
 SDL_Window* window;
 gl_context_t* gfx;
-//gl_shader_t font_shader;
-//gl_renderable_t font_renderable;
+gl_shader_t sprite_shader;
+gl_renderable_t sprite_renderable;
 float projection[16];
 
 #include <debug_draw.h>
@@ -34,6 +39,51 @@ map_t map;
 
 #include <player2d.h>
 player2d_t player;
+
+const int image_count = 140;
+cp_image_t images[image_count];
+spritebatch_t sb;
+
+#include <sprite.h>
+
+void* read_file_to_memory(const char* path, int* size)
+{
+	void* data = 0;
+	FILE* fp = fopen(path, "rb");
+	int sizeNum = 0;
+
+	if (fp)
+	{
+		fseek(fp, 0, SEEK_END);
+		sizeNum = ftell(fp);
+		fseek(fp, 0, SEEK_SET);
+		data = malloc(sizeNum);
+		fread(data, sizeNum, 1, fp);
+		fclose(fp);
+	}
+
+	if (size) *size = sizeNum;
+	return data;
+}
+
+void load_tile_images()
+{
+	int count = 0;
+	int i = 0;
+	char path[1024];
+
+	while (count < image_count)
+	{
+		assert(i < 256);
+		sprintf(path, "art/tile%d.png", i++);
+		int size;
+		void* file = read_file_to_memory(path, &size);
+		if (!file) continue;
+		cp_image_t img = cp_load_png_mem(file, size);
+		assert(img.pix);
+		images[count++] = img;
+	}
+}
 
 float calc_dt()
 {
@@ -59,15 +109,21 @@ void swap_buffers()
 	SDL_GL_SwapWindow(window);
 }
 
+int mx;
+int my;
+
 void main_loop()
 {
 	static int a_is_down = 0;
 	static int d_is_down = 0;
 	static int w_is_down = 0;
 	static int s_is_down = 0;
+	static int mouse_left_is_down = 0;
 
 	int w_is_pressed = 0;
 	int space_is_pressed = 0;
+	int mouse_left_was_pressed = 0;
+	int mouse_right_was_pressed = 0;
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -98,6 +154,29 @@ void main_loop()
 			if (key == SDLK_w) w_is_down = 0;
 			if (key == SDLK_s) s_is_down = 0;
 		}	break;
+
+		case SDL_MOUSEMOTION:
+			mx = event.motion.x;
+			my = event.motion.y;
+			break;
+
+		case SDL_MOUSEBUTTONDOWN:
+			switch (event.button.button)
+			{
+			case SDL_BUTTON_LEFT: mouse_left_is_down = 1; mouse_left_was_pressed = 1; break;
+			case SDL_BUTTON_RIGHT: break;
+			case SDL_BUTTON_MIDDLE: break;
+			}
+			break;
+
+		case SDL_MOUSEBUTTONUP:
+			switch (event.button.button)
+			{
+			case SDL_BUTTON_LEFT: mouse_left_is_down = 0; break;
+			case SDL_BUTTON_RIGHT: break;
+			case SDL_BUTTON_MIDDLE: mouse_right_was_pressed = 1; break;
+			}
+			break;
 		}
 	}
 
@@ -139,12 +218,6 @@ void main_loop()
 	}
 #endif
 
-	// TODO
-	// Sloped tiles
-		// Ignore radius for sloped tiles
-		// Follow slope with shape-cast (to prevent "floating" off of slopes)
-	// Fall off edges
-
 	// pressing jump button applies upward impulse and clears
 	// ground/jump flags
 	if(w_is_pressed && player.can_jump)
@@ -174,6 +247,7 @@ void main_loop()
 		t *= toi;
 
 		// chop off the velocity along the normal
+		// this is the "slide along wall" function
 		vel -= n * dot(vel, n);
 
 		// ngs out of potentially colliding configurations
@@ -199,6 +273,7 @@ void main_loop()
 	// draw player
 	draw_capsule(player.capsule);
 	draw_aabb(player.box);
+	gl_line(gfx, player.seg_a.x, player.seg_a.y, 0, player.seg_b.x, player.seg_b.y, 0);
 
 	// special "on the ground" state
 	if (player.on_ground) {
@@ -210,17 +285,33 @@ void main_loop()
 		}
 
 		// TODO
-		// Look under player with TOI on AABB
-		// Detect if "can fall", to support standing on edges without slipping off
-
-		// TODO
 		// Implement sloped tiles
 		// Use line segment instead of capsule to walk on sloped tiles
+		// Follow slope with shape-cast (to prevent "floating" off of slopes)
 	}
 
 	// draw map
 	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
-	draw_map(&map);
+	debug_draw_map(&map);
+
+	static int editor = 0;
+	if (mouse_right_was_pressed) editor = !editor;
+	if (editor) {
+	}
+
+	// Drawing a sprite with sprite batcher
+	sprite_t tile0 = make_sprite(0, 0, 0, 1.0f, 0, 0);
+	push_sprite(tile0);
+
+	// Run cute_spritebatch to find sprite batches.
+	// This is the most basic usage of cute_psritebatch, one defrag, tick and flush per game loop.
+	// It is also possible to only use defrag once every N frames.
+	// tick can also be called at different time intervals (for example, once per game update
+	// but not necessarily once per screen render).
+	spritebatch_defrag(&sb);
+	spritebatch_tick(&sb);
+	spritebatch_flush(&sb);
+	sprite_verts_count = 0;
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
 }
@@ -288,19 +379,19 @@ void cute_gl_setup()
 		}
 	);
 
-	//gl_vertex_data_t vd;
-	//gl_make_vertex_data(&vd, 1024 * 1024, GL_TRIANGLES, sizeof(cute_font_vert_t), GL_DYNAMIC_DRAW);
-	//gl_add_attribute(&vd, "in_pos", 2, CUTE_GL_FLOAT, CUTE_GL_OFFSET_OF(cute_font_vert_t, x));
-	//gl_add_attribute(&vd, "in_uv", 2, CUTE_GL_FLOAT, CUTE_GL_OFFSET_OF(cute_font_vert_t, u));
+	gl_vertex_data_t vd;
+	gl_make_vertex_data(&vd, 1024 * 1024, GL_TRIANGLES, sizeof(vertex_t), GL_DYNAMIC_DRAW);
+	gl_add_attribute(&vd, "in_pos", 2, CUTE_GL_FLOAT, CUTE_GL_OFFSET_OF(vertex_t, x));
+	gl_add_attribute(&vd, "in_uv", 2, CUTE_GL_FLOAT, CUTE_GL_OFFSET_OF(vertex_t, u));
 
-	//gl_make_renderable(&font_renderable, &vd);
-	//gl_load_shader(&font_shader, vs, ps);
-	//gl_set_shader(&font_renderable, &font_shader);
+	gl_make_renderable(&sprite_renderable, &vd);
+	gl_load_shader(&sprite_shader, vs, ps);
+	gl_set_shader(&sprite_renderable, &sprite_shader);
 	
 	gl_ortho_2d((float)640 / 2.0f, (float)480 / 2.0f, 0, 0, projection);
 	glViewport(0, 0, 640, 480);
 
-	//gl_send_matrix(&font_shader, "u_mvp", projection);
+	gl_send_matrix(&sprite_shader, "u_mvp", projection);
 	gl_line_mvp(gfx, projection);
 
 	glEnable(GL_BLEND);
@@ -313,6 +404,8 @@ int main(int argc, char** argv)
 	sdl_setup();
 	cute_gl_setup();
 	load_map(&map, "map.txt");
+	load_tile_images();
+	setup_spritebatch();
 
 	player.capsule.r = PLAYER_HALF_WIDTH;
 	player.pos = v2(36.3215637f, 37.36820793f);

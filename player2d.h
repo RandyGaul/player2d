@@ -10,6 +10,8 @@ struct player2d_t
 	v2 vel;
 	aabb_t box;
 	capsule_t capsule;
+	v2 seg_a;
+	v2 seg_b;
 	int on_ground;
 	int can_jump;
 };
@@ -20,6 +22,15 @@ void player_sync_geometry(player2d_t* player)
 	player->capsule.a = c2(player->pos + v2(0, PLAYER_HEIGHT / 2.0f - player->capsule.r));
 	player->capsule.b = c2(player->pos + v2(0, -PLAYER_HEIGHT / 2.0f + player->capsule.r));
 	player->box = make_aabb(player->pos, PLAYER_HALF_WIDTH * 2.0f, PLAYER_HEIGHT);
+	player->seg_a = player->pos + v2(0, PLAYER_HEIGHT / 2.0f);
+	player->seg_b = player->pos + v2(0, -PLAYER_HEIGHT / 2.0f);
+}
+
+float player_shapecast_agains_tile(const player2d_t* player, v2* n, v2* context, v2 vel, tile_t tile)
+{
+	// treat player like line-segment against sloped tiles
+	// and a capsule against AABBs
+	return 1;
 }
 
 // sweep player against the world geometry
@@ -30,16 +41,15 @@ float player_sweep(capsule_t capsule, v2* n, v2* contact, v2 vel)
 	v2 min_toi_normal;
 	v2 min_toi_contact;
 
-	for (int i = 0; i <= map.count; ++i)
+	for (int i = 0; i < map.count; ++i)
 	{
 		int x = i % map.w;
-		int y = i / map.h;
+		int y = i / map.w;
 		int id = get_tile_id(&map, x, y);
 		if (id) {
-			aabb_t tile_box = get_tile_bounds(&map, x, y);
-			c2AABB tile_aabb;
-			tile_aabb.min = c2(tile_box.min);
-			tile_aabb.max = c2(tile_box.max);
+			tile_t tile = get_tile(&map, x, y);
+			if (!tile.id) continue;
+			c2AABB tile_aabb = tile.u.box;
 
 			v2 toi_normal;
 			v2 toi_contact;
@@ -74,16 +84,15 @@ void player_ngs(player2d_t* player)
 	while (iters++ < 100)
 	{
 		int hit_something = 0;
-		for (int i = 0; i <= map.count; ++i)
+		for (int i = 0; i < map.count; ++i)
 		{
 			int x = i % map.w;
-			int y = i / map.h;
+			int y = i / map.w;
 			int id = get_tile_id(&map, x, y);
 			if (id) {
-				aabb_t tile_box = get_tile_bounds(&map, x, y);
-				c2AABB tile_aabb;
-				tile_aabb.min = c2(tile_box.min);
-				tile_aabb.max = c2(tile_box.max);
+				tile_t tile = get_tile(&map, x, y);
+				if (!tile.id) continue;
+				c2AABB tile_aabb = tile.u.box;
 
 				c2Manifold m;
 				c2AABBtoCapsuleManifold(tile_aabb, player_copy.capsule, &m);
@@ -104,6 +113,8 @@ void player_ngs(player2d_t* player)
 	*player = player_copy;
 }
 
+// shapecast downward to see if the player has space to fall, or not, using
+// the player's AABB shape
 int player_can_fall(player2d_t* player, int pixels_to_fall)
 {
 	float min_toi = 1;
@@ -114,16 +125,15 @@ int player_can_fall(player2d_t* player, int pixels_to_fall)
 
 	v2 vel_down_10_pixels = v2(0, (float)-pixels_to_fall);
 
-	for (int i = 0; i <= map.count; ++i)
+	for (int i = 0; i < map.count; ++i)
 	{
 		int x = i % map.w;
-		int y = i / map.h;
+		int y = i / map.w;
 		int id = get_tile_id(&map, x, y);
 		if (id) {
-			aabb_t tile_box = get_tile_bounds(&map, x, y);
-			c2AABB tile_aabb;
-			tile_aabb.min = c2(tile_box.min);
-			tile_aabb.max = c2(tile_box.max);
+			tile_t tile = get_tile(&map, x, y);
+			if (!tile.id) continue;
+			c2AABB tile_aabb = tile.u.box;
 
 			v2 toi_normal;
 			v2 toi_contact;
