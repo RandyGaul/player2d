@@ -56,6 +56,12 @@ void hero_set_state(hero_t* hero, hero_state_t state)
 	coroutine_init(&hero->co);
 }
 
+void hero_set_facing(hero_t* hero, facing_t facing)
+{
+	hero->facing = facing;
+	coroutine_init(&hero->co);
+}
+
 void hero_update(hero_t* hero, float dt)
 {
 	const float idle_time = 0.1f;
@@ -90,11 +96,16 @@ void hero_update(hero_t* hero, float dt)
 		COROUTINE_END(co);
 		break;
 	}
+
 }
 
 void hero_draw(hero_t* hero, v2 pos)
 {
 	sprite_t hero_sprite = make_sprite(hero->image_id, pos.x, pos.y, 1.0f, 0, 0);
+	if (hero->facing == FACING_LEFT)
+	{
+		hero_sprite.sx *= -1.0f;
+	}
 	push_sprite(hero_sprite);
 }
 
