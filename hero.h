@@ -59,7 +59,6 @@ void hero_set_state(hero_t* hero, hero_state_t state)
 void hero_set_facing(hero_t* hero, facing_t facing)
 {
 	hero->facing = facing;
-	coroutine_init(&hero->co);
 }
 
 void hero_update(hero_t* hero, float dt)
