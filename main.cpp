@@ -21,6 +21,8 @@
 #include <cute_coroutine.h>
 #include <cute_math2d.h>
 
+#define EDITOR_LAYER 3
+
 using capsule_t = c2Capsule;
 inline c2v c2(v2 v) { return c2V(v.x, v.y); }
 inline v2 c2(c2v v) { return v2(v.x, v.y); }
@@ -50,6 +52,9 @@ spritebatch_t sb;
 #include <sprite.h>
 #include <hero.h>
 hero_t hero;
+
+#include <background.h>
+background_t background;
 
 void* read_file_to_memory(const char* path, int* size)
 {
@@ -351,7 +356,7 @@ void main_loop()
 		float snap_my = center(bounds).y;
 
 		if (tile_selection != ~0) {
-			sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, 2);
+			sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, EDITOR_LAYER);
 			push_sprite(selection);
 		}
 
@@ -378,8 +383,8 @@ void main_loop()
 	// TODO
 	// Finalize map data
 
-	// TODO
-	// Draw background
+	background_update(&background, player.pos.x);
+	background_draw(&background);
 
 	// TODO
 	// Add some moveable crates
@@ -493,6 +498,7 @@ int main(int argc, char** argv)
 	load_tile_images();
 	setup_spritebatch();
 	hero_init(&hero);
+	background_init(&background);
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
 
@@ -513,5 +519,8 @@ int main(int argc, char** argv)
 
 #define HERO_IMPLEMENTATION
 #include <hero.h>
+
+#define BACKGROUND_IMPLEMENTATION
+#include <background.h>
 
 #include <glad/glad.c>
