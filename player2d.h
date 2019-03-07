@@ -1,8 +1,8 @@
 #ifndef PLAYER2D_H
 #define PLAYER2D_H
 
-#define PLAYER_HEIGHT 55.0f
-#define PLAYER_HALF_WIDTH 15.0f
+#define PLAYER_HEIGHT 32.0f
+#define PLAYER_HALF_WIDTH 11.0f
 
 struct player2d_t
 {
