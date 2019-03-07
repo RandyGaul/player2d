@@ -38,6 +38,7 @@ cp_image_t get_image(SPRITEBATCH_U64 image_id)
 		static int loaded_non_tile_images = 0;
 		static cp_image_t hero_idle[4];
 		static cp_image_t hero_run[8];
+		static cp_image_t hero_jump[2];
 
 		if (!loaded_non_tile_images) {
 			loaded_non_tile_images = 1;
@@ -55,6 +56,9 @@ cp_image_t get_image(SPRITEBATCH_U64 image_id)
 			hero_run[6] = cp_load_png("art/player/run/anim11.png");
 			hero_run[7] = cp_load_png("art/player/run/anim12.png");
 			for (int i = 0; i < 8; ++i) assert(hero_run[i].pix);
+			hero_jump[0] = cp_load_png("art/player/jump/anim8.png");
+			hero_jump[1] = cp_load_png("art/player/jump/anim11.png");
+			for (int i = 0; i < 2; ++i) assert(hero_jump[i].pix);
 		}
 
 		if (image_id < 140 + 4) {
@@ -63,6 +67,10 @@ cp_image_t get_image(SPRITEBATCH_U64 image_id)
 
 		else if (image_id < 144 + 8) {
 			return hero_run[image_id - 144];
+		}
+
+		else if (image_id < 152 + 2) {
+			return hero_jump[image_id - 152];
 		}
 	}
 
