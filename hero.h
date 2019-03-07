@@ -43,7 +43,6 @@ enum hero_image_id_t
 
 #endif // HERO_H
 
-#define HERO_IMPLEMENTATION
 #ifdef HERO_IMPLEMENTATION
 #ifndef HERO_IMPLEMENTATION_ONCE
 #define HERO_IMPLEMENTATION_ONCE
