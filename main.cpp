@@ -9,6 +9,7 @@
 #define CUTE_GL_IMPLEMENTATION
 #include <cute_gl.h>
 
+#define CUTE_C2_IMPLEMENTATION
 #include <cute_c2.h>
 
 #define CUTE_PNG_IMPLEMENTATION
@@ -36,6 +37,7 @@ float projection[16];
 #include <debug_draw.h>
 #include <map.h>
 map_t map;
+map_t sprite_map;
 
 #include <player2d.h>
 player2d_t player;
@@ -82,6 +84,7 @@ void load_tile_images()
 		cp_image_t img = cp_load_png_mem(file, size);
 		assert(img.pix);
 		images[count++] = img;
+		free(file);
 	}
 }
 
@@ -119,8 +122,11 @@ void main_loop()
 	static int w_is_down = 0;
 	static int s_is_down = 0;
 	static int mouse_left_is_down = 0;
+	static int ctrl_is_down = 0;
 
 	int w_is_pressed = 0;
+	int s_is_pressed = 0;
+	int c_is_pressed = 0;
 	int space_is_pressed = 0;
 	int mouse_left_was_pressed = 0;
 	int mouse_right_was_pressed = 0;
@@ -140,10 +146,13 @@ void main_loop()
 			SDL_Keycode key = event.key.keysym.sym;
 			if (key == SDLK_a) a_is_down = 1;
 			if (key == SDLK_d) d_is_down = 1;
-
 			if (key == SDLK_w) w_is_down = 1;
 			if (key == SDLK_s) s_is_down = 1;
+			if (key == SDLK_LCTRL || key == SDLK_RCTRL) ctrl_is_down = 1;
+
 			if (key == SDLK_w) w_is_pressed = 1;
+			if (key == SDLK_s) s_is_pressed = 1;
+			if (key == SDLK_c) c_is_pressed = 1;
 			if (key == SDLK_SPACE) space_is_pressed = 1;
 		}	break;
 
@@ -154,6 +163,7 @@ void main_loop()
 			if (key == SDLK_d) d_is_down = 0;
 			if (key == SDLK_w) w_is_down = 0;
 			if (key == SDLK_s) s_is_down = 0;
+			if (key == SDLK_LCTRL || key == SDLK_RCTRL) ctrl_is_down = 0;
 		}	break;
 
 		case SDL_MOUSEMOTION:
@@ -305,6 +315,15 @@ void main_loop()
 	if (mouse_right_was_pressed) {
 		editor = !editor;
 		printf("Editor turned %s.\n", editor ? "ON" : "OFF");
+		if (editor) {
+			printf(
+				" > Press LEFT-CLICK on the mouse to place a sprite tile.\n"
+				" > Scroll the mouse wheel to cycle through the various available tiles.\n"
+				" > Hit ctrl + s to save the sprite map.\n"
+				" > Hit ctrl + c to copy the currently hovered tile to the mouse selection.\n"
+				" > Note: The editor can not edit the collision map. This must be done by hand in a text editor.\n"
+			);
+		}
 	}
 
 	if (editor) {
@@ -322,19 +341,27 @@ void main_loop()
 		float snap_mx = center(bounds).x;
 		float snap_my = center(bounds).y;
 
-		sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, 0);
-		push_sprite(selection);
+		if (tile_selection != ~0) {
+			sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, 0);
+			push_sprite(selection);
+		}
 
-		// TODO
-		// Implement left click + mouse scroll to select/place tiles
+		if (ctrl_is_down && c_is_pressed) {
+			tile_selection = sprite_map.tiles[tile_y * sprite_map.w + tile_x];
+			printf("Copied tile from map to mouse.\n");
+		}
 
-		// TODO
-		// Implement map save function
+		if (ctrl_is_down && s_is_pressed) {
+			save_map(&sprite_map, "map_sprites.txt");
+			printf("Map saved.\n");
+		}
+
+		if (mouse_left_was_pressed) {
+			sprite_map.tiles[tile_y * sprite_map.w + tile_x] = tile_selection;
+		}
 	}
 
-	// Drawing a sprite with sprite batcher
-	sprite_t tile0 = make_sprite(0, 0, 0, 1.0f, 0, 0);
-	push_sprite(tile0);
+	draw_map(&sprite_map);
 
 	// TODO
 	// Draw background
@@ -443,6 +470,7 @@ int main(int argc, char** argv)
 	sdl_setup();
 	cute_gl_setup();
 	load_map(&map, "map.txt");
+	load_map(&sprite_map, "map_sprites.txt");
 	load_tile_images();
 	setup_spritebatch();
 
@@ -458,7 +486,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-#include <glad/glad.c>
+#define MAP_IMPLEMENTATION
+#include <map.h>
 
-#define CUTE_C2_IMPLEMENTATION
-#include <cute_c2.h>
+#include <glad/glad.c>

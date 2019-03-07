@@ -3,9 +3,7 @@
 
 #define TILE_WH 16
 
-#include <assert.h>
 #include <cute_c2.h>
-#include <cute_png.h>
 
 struct tile_t
 {
@@ -22,6 +20,25 @@ struct map_t
 	int w, h, count;
 	int* tiles;
 };
+
+int get_tile_id(map_t* map, int x, int y);
+void get_tile_xy_from_world_pos(map_t* map, v2 pos, int* x, int* y);
+aabb_t get_tile_bounds(map_t* map, int x, int y);
+tile_t get_tile(map_t* map, int x, int y);
+void debug_draw_map(map_t* map);
+void draw_map(map_t* map);
+void load_map(map_t* map, const char* path);
+void save_map(const map_t* map, const char* path);
+void free_map(map_t* map);
+
+#endif // MAP_H
+
+#ifdef MAP_IMPLEMENTATION
+#ifndef MAP_IMPLEMENTATION_ONCE
+#define MAP_IMPLEMENTATION_ONCE
+
+#include <assert.h>
+#include <cute_png.h>
 
 int get_tile_id(map_t* map, int x, int y)
 {
@@ -89,6 +106,21 @@ void debug_draw_map(map_t* map)
 	}
 }
 
+void draw_map(map_t* map)
+{
+	for (int i = 0; i < map->count; ++i)
+	{
+		int x = i % map->w;
+		int y = i / map->w;
+		tile_t tile = get_tile(map, x, y);
+		if (tile.id != ~0) {
+			aabb_t bounds = get_tile_bounds(map, x, y);
+			sprite_t sprite = make_sprite(tile.id, center(bounds).x, center(bounds).y, 1.0f, 0, 0);
+			push_sprite(sprite);
+		}
+	}
+}
+
 void load_map(map_t* map, const char* path)
 {
 	FILE* fp = fopen(path, "r");
@@ -104,16 +136,23 @@ void load_map(map_t* map, const char* path)
 			fscanf(fp, "%d", map->tiles + y * map->w + x);
 		}
 	}
+	fclose(fp);
+}
 
+void save_map(const map_t* map, const char* path)
+{
+	FILE* fp = fopen(path, "w");
+	fprintf(fp, "%d\n", map->w);
+	fprintf(fp, "%d\n\n", map->h);
 	for (int y = map->h - 1; y >= 0; --y)
 	{
 		for (int x = 0; x < map->w; ++x)
 		{
-			tile_t tile = get_tile(map, x, y);
-			printf("%3d", tile.id);
+			fprintf(fp, "%d%s", map->tiles[y * map->w + x], x != map->w - 1 ? "\t" : "");
 		}
-		printf("\n");
+		if (y) fprintf(fp, "\n");
 	}
+	fclose(fp);
 }
 
 void free_map(map_t* map)
@@ -122,4 +161,5 @@ void free_map(map_t* map)
 	memset(map, 0, sizeof(map));
 }
 
-#endif // MAP_H
+#endif // MAP_IMPLEMENTATION_ONCE
+#endif // MAP_IMPLEMENTATION
