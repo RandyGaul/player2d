@@ -51,6 +51,9 @@ spritebatch_t sb;
 #include <hero.h>
 hero_t hero;
 
+#include <background.h>
+background_t background;
+
 void* read_file_to_memory(const char* path, int* size)
 {
 	void* data = 0;
@@ -380,6 +383,7 @@ void main_loop()
 
 	// TODO
 	// Draw background
+	background_draw(&background);
 
 	// TODO
 	// Add some moveable crates
@@ -493,6 +497,7 @@ int main(int argc, char** argv)
 	load_tile_images();
 	setup_spritebatch();
 	hero_init(&hero);
+	background_init(&background);
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
 
@@ -513,5 +518,8 @@ int main(int argc, char** argv)
 
 #define HERO_IMPLEMENTATION
 #include <hero.h>
+
+#define BACKGROUND_IMPLEMENTATION
+#include <background.h>
 
 #include <glad/glad.c>
