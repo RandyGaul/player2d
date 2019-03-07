@@ -383,6 +383,7 @@ void main_loop()
 	// TODO
 	// Finalize map data
 
+	background_update(&background, player.pos.x);
 	background_draw(&background);
 
 	// TODO
