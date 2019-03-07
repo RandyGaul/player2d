@@ -221,8 +221,10 @@ void main_loop()
 	float player_jump_speed = 150.0f;
 	if (a_is_down) {
 		player.vel.x = -player_speed;
+		hero_set_facing(&hero, FACING_LEFT);
 	} else if (d_is_down) {
 		player.vel.x = player_speed;
+		hero_set_facing(&hero, FACING_RIGHT);
 	} else {
 		player.vel.x = 0;
 	}
