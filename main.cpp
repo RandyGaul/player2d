@@ -381,8 +381,6 @@ void main_loop()
 	// TODO
 	// Finalize map data
 
-	// TODO
-	// Draw background
 	background_draw(&background);
 
 	// TODO
