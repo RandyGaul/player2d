@@ -30,14 +30,27 @@ int get_tile_id(map_t* map, int x, int y)
 	return map->tiles[map->w * y + x];
 }
 
-tile_t get_tile(map_t* map, int x, int y)
+void get_tile_xy_from_world_pos(map_t* map, v2 pos, int* x, int* y)
+{
+	float half_w = (float)(map->w * TILE_WH / 2);
+	float half_h = (float)(map->h * TILE_WH / 2);
+	*x = (int)((pos.x + half_w) / TILE_WH);
+	*y = (int)((pos.y + half_h) / TILE_WH);
+}
+
+aabb_t get_tile_bounds(map_t* map, int x, int y)
 {
 	float half_w = (float)(map->w * TILE_WH / 2);
 	float half_h = (float)(map->h * TILE_WH / 2);
 	float x0 = (float)x * TILE_WH - half_w;
 	float y0 = (float)y * TILE_WH - half_h;
 	aabb_t bounds = make_aabb(v2(x0 + TILE_WH / 2, y0 + TILE_WH / 2), TILE_WH, TILE_WH);
+	return bounds;
+}
 
+tile_t get_tile(map_t* map, int x, int y)
+{
+	aabb_t bounds = get_tile_bounds(map, x, y);
 	tile_t tile;
 	tile.id = get_tile_id(map, x, y);
 

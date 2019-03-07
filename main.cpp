@@ -124,6 +124,7 @@ void main_loop()
 	int space_is_pressed = 0;
 	int mouse_left_was_pressed = 0;
 	int mouse_right_was_pressed = 0;
+	int mouse_wheel = 0;
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -158,14 +159,16 @@ void main_loop()
 		case SDL_MOUSEMOTION:
 			mx = event.motion.x;
 			my = event.motion.y;
+			mx = (int)((float)mx / 2.0f) - 160;
+			my = -((int)((float)my / 2.0f) - 120);
 			break;
 
 		case SDL_MOUSEBUTTONDOWN:
 			switch (event.button.button)
 			{
 			case SDL_BUTTON_LEFT: mouse_left_is_down = 1; mouse_left_was_pressed = 1; break;
-			case SDL_BUTTON_RIGHT: break;
 			case SDL_BUTTON_MIDDLE: break;
+			case SDL_BUTTON_RIGHT: mouse_right_was_pressed = 1; break;
 			}
 			break;
 
@@ -173,9 +176,13 @@ void main_loop()
 			switch (event.button.button)
 			{
 			case SDL_BUTTON_LEFT: mouse_left_is_down = 0; break;
+			case SDL_BUTTON_MIDDLE: break;
 			case SDL_BUTTON_RIGHT: break;
-			case SDL_BUTTON_MIDDLE: mouse_right_was_pressed = 1; break;
 			}
+			break;
+
+		case SDL_MOUSEWHEEL:
+			mouse_wheel = event.wheel.y;
 			break;
 		}
 	}
@@ -295,8 +302,29 @@ void main_loop()
 	debug_draw_map(&map);
 
 	static int editor = 0;
-	if (mouse_right_was_pressed) editor = !editor;
+	if (mouse_right_was_pressed) {
+		editor = !editor;
+		printf("Editor turned %s.\n", editor ? "ON" : "OFF");
+	}
+
 	if (editor) {
+		static int tile_selection = 0;
+		if (mouse_wheel) {
+			tile_selection += mouse_wheel;
+			if (tile_selection < 0) tile_selection = image_count - 1;
+			else if (tile_selection >= image_count) tile_selection = 0;
+		}
+
+		int tile_x;
+		int tile_y;
+		get_tile_xy_from_world_pos(&map, v2((float)mx, (float)my), &tile_x, &tile_y);
+		aabb_t bounds = get_tile_bounds(&map, tile_x, tile_y);
+		float snap_mx = center(bounds).x;
+		float snap_my = center(bounds).y;
+
+		sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, 0);
+		push_sprite(selection);
+
 		// TODO
 		// Implement left click + mouse scroll to select/place tiles
 
