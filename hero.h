@@ -32,6 +32,7 @@ void hero_set_state(hero_t* hero, hero_state_t state);
 void hero_update(hero_t* hero, float dt);
 void hero_draw(hero_t* hero, v2 pos);
 void hero_init(hero_t* hero);
+void hero_set_facing(hero_t* hero, facing_t facing);
 
 enum hero_image_id_t
 {
