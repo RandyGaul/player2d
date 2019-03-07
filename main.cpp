@@ -35,6 +35,7 @@ gl_context_t* gfx;
 gl_shader_t sprite_shader;
 gl_renderable_t sprite_renderable;
 float projection[16];
+bool showing_debug = true;
 
 #include <debug_draw.h>
 #include <map.h>
@@ -162,6 +163,8 @@ void main_loop()
 			if (key == SDLK_s) s_is_pressed = 1;
 			if (key == SDLK_c) c_is_pressed = 1;
 			if (key == SDLK_SPACE) space_is_pressed = 1;
+			
+			if (key == SDLK_g) showing_debug = !showing_debug;
 		}	break;
 
 		case SDL_KEYUP:
@@ -322,8 +325,10 @@ void main_loop()
 	}
 
 	// debug draw map
-	gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
-	debug_draw_map(&map);
+	if (showing_debug) {
+		gl_line_color(gfx, 1.0f, 1.0f, 1.0f);
+		debug_draw_map(&map);
+	}
 
 	static int editor = 0;
 	if (mouse_right_was_pressed) {
@@ -501,6 +506,7 @@ int main(int argc, char** argv)
 	background_init(&background);
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
+	printf("Press G to toggle drawing debug info.\n");
 
 	player.capsule.r = PLAYER_HALF_WIDTH;
 	player.pos = v2(36.3215637f, 37.36820793f);
