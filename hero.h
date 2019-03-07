@@ -49,6 +49,9 @@ enum hero_image_id_t
 	HERO_IMAGE_ID_RUN5,
 	HERO_IMAGE_ID_RUN6,
 	HERO_IMAGE_ID_RUN7,
+
+	HERO_IMAGE_ID_JUMP0,
+	HERO_IMAGE_ID_JUMP1,
 };
 
 #endif // HERO_H
@@ -137,6 +140,21 @@ void hero_state_run(hero_t* hero, float dt)
 	COROUTINE_END(co);
 }
 
+void hero_state_jump(hero_t* hero, float dt)
+{
+	coroutine_t* co = &hero->co;
+
+	COROUTINE_START(co);
+
+		hero->image_id = HERO_IMAGE_ID_JUMP0;
+		COROUTINE_WAIT(co, 0.15f, dt);
+
+		hero->image_id = HERO_IMAGE_ID_JUMP1;
+		COROUTINE_EXIT(co);
+
+	COROUTINE_END(co);
+}
+
 void hero_update(hero_t* hero, float dt)
 {
 	switch (hero->state)
@@ -147,6 +165,10 @@ void hero_update(hero_t* hero, float dt)
 
 	case HERO_STATE_RUN:
 		hero_state_run(hero, dt);
+		break;
+
+	case HERO_STATE_JUMP:
+		hero_state_jump(hero, dt);
 		break;
 	}
 }

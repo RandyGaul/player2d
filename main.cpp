@@ -42,6 +42,7 @@ map_t sprite_map;
 #include <player2d.h>
 player2d_t player;
 
+// There are exactly 140 different tile images.
 const int image_count = 140;
 cp_image_t images[image_count];
 spritebatch_t sb;
@@ -114,8 +115,8 @@ void swap_buffers()
 	SDL_GL_SwapWindow(window);
 }
 
-int mx;
-int my;
+int mx; // mouse x
+int my; // mouse y
 
 void main_loop()
 {
@@ -222,14 +223,14 @@ void main_loop()
 	if (a_is_down) {
 		player.vel.x = -player_speed;
 		hero_set_facing(&hero, FACING_LEFT);
-		if (hero.state != HERO_STATE_RUN) hero_set_state(&hero, HERO_STATE_RUN);
+		if (player.on_ground && hero.state != HERO_STATE_RUN) hero_set_state(&hero, HERO_STATE_RUN);
 	} else if (d_is_down) {
 		player.vel.x = player_speed;
 		hero_set_facing(&hero, FACING_RIGHT);
-		if (hero.state != HERO_STATE_RUN) hero_set_state(&hero, HERO_STATE_RUN);
+		if (player.on_ground && hero.state != HERO_STATE_RUN) hero_set_state(&hero, HERO_STATE_RUN);
 	} else {
 		player.vel.x = 0;
-		if (hero.state != HERO_STATE_IDLE) hero_set_state(&hero, HERO_STATE_IDLE);
+		if (player.on_ground && hero.state != HERO_STATE_IDLE) hero_set_state(&hero, HERO_STATE_IDLE);
 	}
 
 #if 0
@@ -249,6 +250,7 @@ void main_loop()
 		player.vel.y = player_jump_speed;
 		player.can_jump = 0;
 		player.on_ground = 0;
+		hero_set_state(&hero, HERO_STATE_JUMP);
 	}
 
 	// sweep player through the world across the timestep
@@ -382,9 +384,7 @@ void main_loop()
 	// TODO
 	// Add some moveable crates
 
-	// TODO
-	// Hookup basic character animations
-
+	// Hero's animation controller
 	hero_update(&hero, dt);
 	hero_draw(&hero, player.pos);
 
