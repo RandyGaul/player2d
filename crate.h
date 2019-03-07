@@ -77,6 +77,7 @@ void crate_player_collision(crate_t* crate, player2d_t* player)
     c2AABBtoCapsuleManifold(crate->aabb, player->capsule, &m);
     if (m.count) {
         // TODO: Maybe, I should be changing the velocity here instead?
+        // TODO: You cannot stand on a crate
         crate->pos.x -= m.n.x;
         crate_sync_geometry(crate);
     }
