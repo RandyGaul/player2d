@@ -351,7 +351,7 @@ void main_loop()
 		float snap_my = center(bounds).y;
 
 		if (tile_selection != ~0) {
-			sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, 0);
+			sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, 2);
 			push_sprite(selection);
 		}
 
