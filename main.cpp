@@ -222,11 +222,14 @@ void main_loop()
 	if (a_is_down) {
 		player.vel.x = -player_speed;
 		hero_set_facing(&hero, FACING_LEFT);
+		if (hero.state != HERO_STATE_RUN) hero_set_state(&hero, HERO_STATE_RUN);
 	} else if (d_is_down) {
 		player.vel.x = player_speed;
 		hero_set_facing(&hero, FACING_RIGHT);
+		if (hero.state != HERO_STATE_RUN) hero_set_state(&hero, HERO_STATE_RUN);
 	} else {
 		player.vel.x = 0;
+		if (hero.state != HERO_STATE_IDLE) hero_set_state(&hero, HERO_STATE_IDLE);
 	}
 
 #if 0

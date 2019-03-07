@@ -40,6 +40,15 @@ enum hero_image_id_t
 	HERO_IMAGE_ID_IDLE1,
 	HERO_IMAGE_ID_IDLE2,
 	HERO_IMAGE_ID_IDLE3,
+
+	HERO_IMAGE_ID_RUN0,
+	HERO_IMAGE_ID_RUN1,
+	HERO_IMAGE_ID_RUN2,
+	HERO_IMAGE_ID_RUN3,
+	HERO_IMAGE_ID_RUN4,
+	HERO_IMAGE_ID_RUN5,
+	HERO_IMAGE_ID_RUN6,
+	HERO_IMAGE_ID_RUN7,
 };
 
 #endif // HERO_H
@@ -61,41 +70,85 @@ void hero_set_facing(hero_t* hero, facing_t facing)
 	hero->facing = facing;
 }
 
-void hero_update(hero_t* hero, float dt)
+void hero_state_idle(hero_t* hero, float dt)
 {
 	const float idle_time = 0.1f;
 	const float idle_pause_time = 0.35f;
 	coroutine_t* co = &hero->co;
 
+	COROUTINE_START(co);
+	COROUTINE_CASE(co, idle_start);
+
+		hero->image_id = HERO_IMAGE_ID_IDLE0;
+		COROUTINE_WAIT(co, idle_pause_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_IDLE1;
+		COROUTINE_WAIT(co, idle_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_IDLE2;
+		COROUTINE_WAIT(co, idle_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_IDLE3;
+		COROUTINE_WAIT(co, idle_pause_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_IDLE2;
+		COROUTINE_WAIT(co, idle_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_IDLE1;
+		COROUTINE_WAIT(co, idle_time, dt);
+
+	goto idle_start;
+	COROUTINE_END(co);
+}
+
+void hero_state_run(hero_t* hero, float dt)
+{
+	const float run_time = 0.1f;
+	coroutine_t* co = &hero->co;
+
+	COROUTINE_START(co);
+	COROUTINE_CASE(co, run_start);
+
+		hero->image_id = HERO_IMAGE_ID_RUN0;
+		COROUTINE_WAIT(co, run_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_RUN1;
+		COROUTINE_WAIT(co, run_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_RUN2;
+		COROUTINE_WAIT(co, run_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_RUN3;
+		COROUTINE_WAIT(co, run_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_RUN4;
+		COROUTINE_WAIT(co, run_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_RUN5;
+		COROUTINE_WAIT(co, run_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_RUN6;
+		COROUTINE_WAIT(co, run_time, dt);
+
+		hero->image_id = HERO_IMAGE_ID_RUN7;
+		COROUTINE_WAIT(co, run_time, dt);
+
+	goto run_start;
+	COROUTINE_END(co);
+}
+
+void hero_update(hero_t* hero, float dt)
+{
 	switch (hero->state)
 	{
 	case HERO_STATE_IDLE:
-		COROUTINE_START(co);
-		COROUTINE_CASE(co, idle_start);
+		hero_state_idle(hero, dt);
+		break;
 
-			hero->image_id = HERO_IMAGE_ID_IDLE0;
-			COROUTINE_WAIT(co, idle_pause_time, dt);
-
-			hero->image_id = HERO_IMAGE_ID_IDLE1;
-			COROUTINE_WAIT(co, idle_time, dt);
-
-			hero->image_id = HERO_IMAGE_ID_IDLE2;
-			COROUTINE_WAIT(co, idle_time, dt);
-
-			hero->image_id = HERO_IMAGE_ID_IDLE3;
-			COROUTINE_WAIT(co, idle_pause_time, dt);
-
-			hero->image_id = HERO_IMAGE_ID_IDLE2;
-			COROUTINE_WAIT(co, idle_time, dt);
-
-			hero->image_id = HERO_IMAGE_ID_IDLE1;
-			COROUTINE_WAIT(co, idle_time, dt);
-
-		goto idle_start;
-		COROUTINE_END(co);
+	case HERO_STATE_RUN:
+		hero_state_run(hero, dt);
 		break;
 	}
-
 }
 
 void hero_draw(hero_t* hero, v2 pos)
