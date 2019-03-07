@@ -393,7 +393,7 @@ void main_loop()
 	spritebatch_defrag(&sb);
 	spritebatch_tick(&sb);
 	spritebatch_flush(&sb);
-	sprite_verts_count = 0;
+	flush_sprite_draw_calls();
 
 	gl_flush(gfx, swap_buffers, 0, 640, 480);
 }

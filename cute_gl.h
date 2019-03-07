@@ -229,7 +229,7 @@ void gl_push_draw_call(void* ctx, gl_draw_call_t call);
 
 typedef void (gl_func_t)();
 void gl_flush(void* ctx, gl_func_t* swap, gl_framebuffer_t* fb, int w, int h);
-int gl_draw_call_tCount(void* ctx);
+int gl_draw_call_count(void* ctx);
 
 // 4x4 matrix helper functions
 void gl_ortho_2d(float w, float h, float x, float y, float* m);
@@ -1085,7 +1085,7 @@ void gl_flush(void* ctx, gl_func_t* swap, gl_framebuffer_t* fb, int w, int h)
 	swap();
 }
 
-int gl_draw_call_tCount(void* ctx)
+int gl_draw_call_count(void* ctx)
 {
 	gl_context_t* context = (gl_context_t*)ctx;
 	return context->count;

@@ -17,6 +17,8 @@ typedef struct
 #define SPRITE_VERTS_MAX (1024 * 10)
 int sprite_verts_count;
 vertex_t sprite_verts[SPRITE_VERTS_MAX];
+int sprite_batch_draw_call_count;
+gl_draw_call_t sprite_batch_draw_calls[256];
 
 // example of a game sprite
 typedef struct
@@ -166,8 +168,10 @@ void batch_report(spritebatch_sprite_t* sprites, int count, int texture_w, int t
 		out_verts[5].v = s->miny;
 	}
 
-	// submit call to cute_gl (does not get flushed to screen until `tgFlush` is called)
-	gl_push_draw_call(gfx, call);
+	// Buffer up the draw calls on a local stack. These will be submit to cute_gl in *reverse*
+	// stack order to properly preserve sprite render ordering.
+	assert(sprite_batch_draw_call_count < 256);
+	sprite_batch_draw_calls[sprite_batch_draw_call_count++] = call;
 }
 
 void get_pixels(SPRITEBATCH_U64 image_id, void* buffer, int bytes_to_fill, void* udata)
@@ -235,6 +239,14 @@ void push_sprite(sprite_t sp)
 {
 	cp_image_t img = get_image(sp.image_id);
 	spritebatch_push(&sb, sp.image_id, img.w, img.h, sp.x, sp.y, sp.sx, sp.sy, sp.c, sp.s, (SPRITEBATCH_U64)sp.depth);
+}
+
+void flush_sprite_draw_calls()
+{
+	for (int i = sprite_batch_draw_call_count - 1; i >= 0; --i)
+		gl_push_draw_call(gfx, sprite_batch_draw_calls[i]);
+	sprite_batch_draw_call_count = 0;
+	sprite_verts_count = 0;
 }
 
 #endif // SPRITE_H
