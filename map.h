@@ -100,7 +100,7 @@ void debug_draw_map(map_t* map)
 			switch (tile.id)
 			{
 			default: draw_aabb(c2(tile.u.box)); break;
-			case 5: draw_poly(tile.u.poly); break;
+			case 5: draw_aabb(c2(tile.u.box)); break;
 			}
 		}
 	}

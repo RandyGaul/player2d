@@ -79,7 +79,7 @@ void player_ngs(player2d_t* player)
 	int max_iters = 100;
 	int iters = 0;
 	player2d_t player_copy = *player;
-	const float skin_factor = 0.025f;
+	const float skin_factor = 0.05f;
 	player_copy.capsule.r += skin_factor;
 	while (iters++ < 100)
 	{
@@ -99,7 +99,7 @@ void player_ngs(player2d_t* player)
 				if (m.count) {
 					hit_something = 1;
 					v2 n = c2(m.n);
-					const float corrective_factor = 0.2f;
+					const float corrective_factor = 0.2f * m.depths[0];
 					player_copy.pos += n * corrective_factor;
 					player_sync_geometry(&player_copy);
 				}
