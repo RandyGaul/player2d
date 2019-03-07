@@ -57,6 +57,9 @@ hero_t hero;
 #include <background.h>
 background_t background;
 
+#include <crate.h>
+crate_t crate;
+
 void* read_file_to_memory(const char* path, int* size)
 {
 	void* data = 0;
@@ -302,9 +305,9 @@ void main_loop()
 
 	// draw player
 	if (showing_debug) {
-	draw_capsule(player.capsule);
-	draw_aabb(player.box);
-	gl_line(gfx, player.seg_a.x, player.seg_a.y, 0, player.seg_b.x, player.seg_b.y, 0);
+		draw_capsule(player.capsule);
+		draw_aabb(player.box);
+		gl_line(gfx, player.seg_a.x, player.seg_a.y, 0, player.seg_b.x, player.seg_b.y, 0);
 	}
 
 	// special "on the ground" state
@@ -391,6 +394,9 @@ void main_loop()
 
 	// TODO
 	// Add some moveable crates
+	crate_player_collision(&crate, &player);
+	crate_draw(&crate);
+	crate_update(&crate, dt);
 
 	// Hero's animation controller
 	hero_update(&hero, dt);
@@ -502,6 +508,7 @@ int main(int argc, char** argv)
 	setup_spritebatch();
 	hero_init(&hero);
 	background_init(&background);
+	crate_init(&crate, v2(-87.795204f, -46.0f));
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
 	printf("Press G to toggle drawing debug info.\n");
@@ -526,5 +533,8 @@ int main(int argc, char** argv)
 
 #define BACKGROUND_IMPLEMENTATION
 #include <background.h>
+
+#define CRATE_IMPLEMENTATION
+#include <crate.h>
 
 #include <glad/glad.c>
