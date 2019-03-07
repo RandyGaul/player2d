@@ -364,6 +364,12 @@ void main_loop()
 	draw_map(&sprite_map);
 
 	// TODO
+	// Implement sloped tiles
+
+	// TODO
+	// Finalize map data
+
+	// TODO
 	// Draw background
 
 	// TODO
