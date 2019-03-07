@@ -21,6 +21,8 @@
 #include <cute_coroutine.h>
 #include <cute_math2d.h>
 
+#define EDITOR_LAYER 3
+
 using capsule_t = c2Capsule;
 inline c2v c2(v2 v) { return c2V(v.x, v.y); }
 inline v2 c2(c2v v) { return v2(v.x, v.y); }
@@ -354,7 +356,7 @@ void main_loop()
 		float snap_my = center(bounds).y;
 
 		if (tile_selection != ~0) {
-			sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, 2);
+			sprite_t selection = make_sprite(tile_selection, snap_mx, snap_my, 1.0f, 0, EDITOR_LAYER);
 			push_sprite(selection);
 		}
 
