@@ -51,7 +51,8 @@ void crate_sync_geometry(crate_t* crate)
 
 void crate_update(crate_t* crate, float dt)
 {
-    crate->pos += crate->vel * dt;
+    // TODO: Figure out if the crate is on the ground or not
+    // crate->pos += crate->vel * dt;
 }
 
 void crate_draw(crate_t* crate)
@@ -75,7 +76,9 @@ void crate_player_collision(crate_t* crate, player2d_t* player)
     c2Manifold m;
     c2AABBtoCapsuleManifold(crate->aabb, player->capsule, &m);
     if (m.count) {
-        // player<->crate collision
+        // TODO: Maybe, I should be changing the velocity here instead?
+        crate->pos.x -= m.n.x;
+        crate_sync_geometry(crate);
     }
 }
 
