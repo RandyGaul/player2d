@@ -28,15 +28,42 @@ typedef struct
 	float c, s;
 } sprite_t;
 
+cp_image_t get_image(SPRITEBATCH_U64 image_id)
+{
+	if (image_id < 140) {
+		return images[image_id];
+	} else {
+		static int loaded_non_tile_images = 0;
+		static cp_image_t hero_idle[4];
+
+		if (!loaded_non_tile_images) {
+			loaded_non_tile_images = 1;
+			hero_idle[0] = cp_load_png("art/player/idle/anim1.png");
+			hero_idle[1] = cp_load_png("art/player/idle/anim2.png");
+			hero_idle[2] = cp_load_png("art/player/idle/anim3.png");
+			hero_idle[3] = cp_load_png("art/player/idle/anim4.png");
+			for (int i = 0; i < 4; ++i) assert(hero_idle[i].pix);
+		}
+
+		if (image_id < 144) {
+			return hero_idle[image_id - 140];
+		}
+	}
+
+	cp_image_t img = { 0 };
+	return img;
+}
+
 sprite_t make_sprite(SPRITEBATCH_U64 image_id, float x, float y, float scale, float angle_radians, int depth)
 {
+	cp_image_t img = get_image(image_id);
 	sprite_t s;
 	s.image_id = image_id;
 	s.depth = depth;
 	s.x = x;
 	s.y = y;
-	s.sx = (float)images[s.image_id].w * scale;
-	s.sy = (float)images[s.image_id].h * scale;
+	s.sx = (float)img.w * scale;
+	s.sy = (float)img.h * scale;
 	s.c = cosf(angle_radians);
 	s.s = sinf(angle_radians);
 	return s;
@@ -146,7 +173,8 @@ void batch_report(spritebatch_sprite_t* sprites, int count, int texture_w, int t
 void get_pixels(SPRITEBATCH_U64 image_id, void* buffer, int bytes_to_fill, void* udata)
 {
 	(void)udata;
-	memcpy(buffer, images[image_id].pix, bytes_to_fill);
+	cp_image_t img = get_image(image_id);
+	memcpy(buffer, img.pix, bytes_to_fill);
 }
 
 SPRITEBATCH_U64 generate_texture_handle(void* pixels, int w, int h, void* udata)
@@ -203,7 +231,10 @@ void setup_spritebatch()
 	spritebatch_init(&sb, &config, NULL);
 }
 
-#define push_sprite(sp) \
-	spritebatch_push(&sb, sp.image_id, images[sp.image_id].w, images[sp.image_id].h, sp.x, sp.y, sp.sx, sp.sy, sp.c, sp.s, (SPRITEBATCH_U64)sp.depth)
+void push_sprite(sprite_t sp)
+{
+	cp_image_t img = get_image(sp.image_id);
+	spritebatch_push(&sb, sp.image_id, img.w, img.h, sp.x, sp.y, sp.sx, sp.sy, sp.c, sp.s, (SPRITEBATCH_U64)sp.depth);
+}
 
 #endif // SPRITE_H

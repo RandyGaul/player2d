@@ -47,6 +47,8 @@ cp_image_t images[image_count];
 spritebatch_t sb;
 
 #include <sprite.h>
+#include <hero.h>
+hero_t hero;
 
 void* read_file_to_memory(const char* path, int* size)
 {
@@ -76,7 +78,7 @@ void load_tile_images()
 
 	while (count < image_count)
 	{
-		assert(i < 256);
+		assert(count < 140);
 		sprintf(path, "art/tile%d.png", i++);
 		int size;
 		void* file = read_file_to_memory(path, &size);
@@ -375,6 +377,12 @@ void main_loop()
 	// TODO
 	// Add some moveable crates
 
+	// TODO
+	// Hookup basic character animations
+
+	hero_update(&hero, dt);
+	hero_draw(&hero, player.pos);
+
 	// Run cute_spritebatch to find sprite batches.
 	// This is the most basic usage of cute_psritebatch, one defrag, tick and flush per game loop.
 	// It is also possible to only use defrag once every N frames.
@@ -479,6 +487,9 @@ int main(int argc, char** argv)
 	load_map(&sprite_map, "map_sprites.txt");
 	load_tile_images();
 	setup_spritebatch();
+	hero_init(&hero);
+
+	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
 
 	player.capsule.r = PLAYER_HALF_WIDTH;
 	player.pos = v2(36.3215637f, 37.36820793f);
@@ -494,5 +505,8 @@ int main(int argc, char** argv)
 
 #define MAP_IMPLEMENTATION
 #include <map.h>
+
+#define HERO_IMPLEMENTATION
+#include <hero.h>
 
 #include <glad/glad.c>
