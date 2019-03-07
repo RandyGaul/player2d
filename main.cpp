@@ -79,20 +79,16 @@ void* read_file_to_memory(const char* path, int* size)
 
 void load_tile_images()
 {
-	int count = 0;
-	int i = 0;
 	char path[1024];
 
-	while (count < image_count)
-	{
-		assert(count < 140);
-		sprintf(path, "art/tile%d.png", i++);
+	for (int count = 0; count < image_count; count++) {
+		sprintf(path, "art/tile%d.png", count);
 		int size;
 		void* file = read_file_to_memory(path, &size);
 		if (!file) continue;
 		cp_image_t img = cp_load_png_mem(file, size);
 		assert(img.pix);
-		images[count++] = img;
+		images[count] = img;
 		free(file);
 	}
 }
