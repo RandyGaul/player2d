@@ -2,6 +2,7 @@
 #define MAP_H
 
 #define TILE_WH 16
+#define MAP_SPRITE_LAYER 1
 
 #include <cute_c2.h>
 
@@ -115,7 +116,7 @@ void draw_map(map_t* map)
 		tile_t tile = get_tile(map, x, y);
 		if (tile.id != ~0) {
 			aabb_t bounds = get_tile_bounds(map, x, y);
-			sprite_t sprite = make_sprite(tile.id, center(bounds).x, center(bounds).y, 1.0f, 0, 0);
+			sprite_t sprite = make_sprite(tile.id, center(bounds).x, center(bounds).y, 1.0f, 0, MAP_SPRITE_LAYER);
 			push_sprite(sprite);
 		}
 	}

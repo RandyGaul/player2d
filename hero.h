@@ -3,6 +3,8 @@
 
 #include <cute_coroutine.h>
 
+#define HERO_SPRITE_LAYER 2
+
 // This file just implements animation/rendering logic.
 // The state machine is intended to be driven externally.
 
@@ -175,7 +177,7 @@ void hero_update(hero_t* hero, float dt)
 
 void hero_draw(hero_t* hero, v2 pos)
 {
-	sprite_t hero_sprite = make_sprite(hero->image_id, pos.x, pos.y, 1.0f, 0, 1);
+	sprite_t hero_sprite = make_sprite(hero->image_id, pos.x, pos.y, 1.0f, 0, HERO_SPRITE_LAYER);
 	if (hero->facing == FACING_LEFT)
 	{
 		hero_sprite.sx *= -1.0f;
