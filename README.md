@@ -119,3 +119,18 @@ A great thing about disabling gravity when "on ground" is that "floaty" artifact
 In the above image gravity is always applied, and gravity is used to keep the player on the ground. If instead gravity is turned off, and an "on ground" flag is used, a different implementation can be made. Instead, it's possible to raycast downward from the player's center, and "follow" the ground explicitly. This way the player can run on a flat surface, and onto a sloped surface, without floating in the air at all, and without using a huge gravity value.
 
 I have not yet implemented this feature in the demo, and instead simply deal with "floaty" artifacts. They can easy be seen when the player runs down the sloped tiles in the demo.
+
+# Some Ideas for Extended Features
+
+Lots of features can be tacked onto the demo here to spice things up. The sweep/NGS functions in the demo are especially useful to use as work-horses to implement features. Here are some random ideas I think would be pretty cool:
+
+* Player dash effect (the TOI functions will gracefully handle high speeds)
+* Raycast downwards while "on ground" to follow slopes gracefully
+* Crate stacking
+* Standing on top of crates
+* Slide-dash - use a different collider depending on the controller state (like a sideways capsule while sliding)
+* Ducking/crouching
+* Wall-grabbing or wall-sliding
+* Double jumping
+* Corner grabbing
+* Many more!
