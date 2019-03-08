@@ -215,6 +215,38 @@ void main_loop()
 	}
 #endif
 
+#if 0
+	static int my_x;
+	static int my_y;
+	static int capture_mouse = 1;
+	if (space_is_pressed) {
+		capture_mouse = !capture_mouse;
+	}
+	if (capture_mouse) {
+		my_x = mx;
+		my_y = my;
+	}
+	c2Capsule cap;
+	cap.a = c2V(my_x, my_y);
+	cap.b = c2V(my_x, my_y - 30.0f);
+	cap.r = 11.0f;
+
+	c2Poly poly;
+	poly.verts[0] = c2V(16 - 50, -24);
+	poly.verts[1] = c2V(32 - 50, -24);
+	poly.verts[2] = c2V(32 - 50, -8);
+	poly.verts[3] = c2V(16 - 50, -8);
+	poly.count = 4;
+	c2Norms(poly.verts, poly.norms, 4);
+
+	draw_capsule(cap);
+	draw_poly(poly);
+
+	c2Manifold m;
+	c2CapsuletoPolyManifold(cap, &poly, 0, &m);
+	if (m.count) draw_manifold(m);
+#endif
+
 	float dt = calc_dt();
 	if (dt > (1.0f / 20.0f)) dt = 1.0f / 20.0f;
 
@@ -283,6 +315,10 @@ void main_loop()
 		// chop off the velocity along the normal
 		// this is the "slide along wall" function
 		vel -= n * dot(vel, n);
+
+		if (iters == 1 && t == 0) {
+			player.pos = player.vel * dt;
+		}
 
 		// ngs out of potentially colliding configurations
 		player_ngs(&player);

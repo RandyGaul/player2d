@@ -20,13 +20,14 @@ struct player2d_t
 void player_sync_geometry(player2d_t* player)
 {
 	player->capsule.a = c2(player->pos + v2(0, PLAYER_HEIGHT / 2.0f - player->capsule.r));
+	player->capsule.a.y += 2.0f;
 	player->capsule.b = c2(player->pos + v2(0, -PLAYER_HEIGHT / 2.0f + player->capsule.r));
 	player->box = make_aabb(player->pos, PLAYER_HALF_WIDTH * 2.0f, PLAYER_HEIGHT);
 	player->seg_a = player->pos + v2(0, PLAYER_HEIGHT / 2.0f);
 	player->seg_b = player->pos + v2(0, -PLAYER_HEIGHT / 2.0f);
 }
 
-float player_shapecast_agains_tile(const player2d_t* player, v2* n, v2* context, v2 vel, tile_t tile)
+float player_shapecast_against_tile(capsule_t capsule, v2* n, v2* context, v2 vel, tile_t tile)
 {
 	// treat player like line-segment against sloped tiles
 	// and a capsule against AABBs
@@ -49,14 +50,13 @@ float player_sweep(capsule_t capsule, v2* n, v2* contact, v2 vel)
 		if (id) {
 			tile_t tile = get_tile(&map, x, y);
 			if (!tile.id) continue;
-			c2AABB tile_aabb = tile.u.box;
 
 			v2 toi_normal;
 			v2 toi_contact;
 			int iters;
-			float toi = c2TOI(&tile_aabb, C2_AABB, 0, c2V(0, 0), &capsule, C2_CAPSULE, 0, c2(vel), 1, (c2v*)&toi_normal, (c2v*)&toi_contact, &iters);
+			float toi = c2TOI(&tile.u, tile_id_to_c2_type(tile.id), 0, c2V(0, 0), &capsule, C2_CAPSULE, 0, c2(vel), 1, (c2v*)&toi_normal, (c2v*)&toi_contact, &iters);
 			if (toi < min_toi) {
-				min_toi = toi;
+ 				min_toi = toi;
 				min_toi_normal = toi_normal;
 				min_toi_contact = toi_contact;
 			}
@@ -92,16 +92,16 @@ void player_ngs(player2d_t* player)
 			if (id) {
 				tile_t tile = get_tile(&map, x, y);
 				if (!tile.id) continue;
-				c2AABB tile_aabb = tile.u.box;
 
 				c2Manifold m;
-				c2AABBtoCapsuleManifold(tile_aabb, player_copy.capsule, &m);
+				c2Collide(&tile.u, 0, tile_id_to_c2_type(tile.id), &player_copy.capsule, 0, C2_CAPSULE, &m);
 				if (m.count) {
 					hit_something = 1;
 					v2 n = c2(m.n);
-					const float corrective_factor = 0.2f * m.depths[0];
+					const float corrective_factor = 0.2f;
 					player_copy.pos += n * corrective_factor;
 					player_sync_geometry(&player_copy);
+					draw_manifold(m);
 				}
 			}
 		}
@@ -133,12 +133,11 @@ int player_can_fall(player2d_t* player, int pixels_to_fall)
 		if (id) {
 			tile_t tile = get_tile(&map, x, y);
 			if (!tile.id) continue;
-			c2AABB tile_aabb = tile.u.box;
 
 			v2 toi_normal;
 			v2 toi_contact;
 			int iters;
-			float toi = c2TOI(&tile_aabb, C2_AABB, 0, c2V(0, 0), &player_aabb, C2_AABB, 0, c2(vel_down_10_pixels), 1, 0, 0, &iters);
+			float toi = c2TOI(&tile.u, tile_id_to_c2_type(tile.id), 0, c2V(0, 0), &player_aabb, C2_AABB, 0, c2(vel_down_10_pixels), 1, 0, 0, &iters);
 			if (toi < min_toi) {
 				min_toi = toi;
 			}

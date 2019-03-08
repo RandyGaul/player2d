@@ -22,6 +22,17 @@ struct map_t
 	int* tiles;
 };
 
+inline C2_TYPE tile_id_to_c2_type(int id)
+{
+	switch (id)
+	{
+	default: // fall-thru
+	case 0: return C2_NONE;
+	case 1: return C2_AABB;
+	case 2: return C2_POLY;
+	}
+}
+
 int get_tile_id(map_t* map, int x, int y);
 void get_tile_xy_from_world_pos(map_t* map, v2 pos, int* x, int* y);
 aabb_t get_tile_bounds(map_t* map, int x, int y);
@@ -75,8 +86,9 @@ tile_t get_tile(map_t* map, int x, int y)
 	if (tile.id) {
 		switch (tile.id)
 		{
-		default: tile.u.box = c2(bounds); break;
-		case 5:
+		default: assert(0);
+		case 1: tile.u.box = c2(bounds); break;
+		case 2:
 		{
 			tile.u.poly.verts[0] = c2(top_left(bounds));
 			tile.u.poly.verts[1] = c2(bottom_left(bounds));
@@ -100,23 +112,24 @@ void debug_draw_map(map_t* map)
 		if (tile.id) {
 			switch (tile.id)
 			{
-			default: draw_aabb(c2(tile.u.box)); break;
-			case 5: draw_aabb(c2(tile.u.box)); break;
+			default: assert(0);
+			case 1: draw_aabb(c2(tile.u.box)); break;
+			case 2: draw_poly(tile.u.poly); break;
 			}
 		}
 	}
 }
 
-void draw_map(map_t* map)
+void draw_map(map_t* sprite_map)
 {
-	for (int i = 0; i < map->count; ++i)
+	for (int i = 0; i < sprite_map->count; ++i)
 	{
-		int x = i % map->w;
-		int y = i / map->w;
-		tile_t tile = get_tile(map, x, y);
-		if (tile.id != ~0) {
-			aabb_t bounds = get_tile_bounds(map, x, y);
-			sprite_t sprite = make_sprite(tile.id, center(bounds).x, center(bounds).y, 1.0f, 0, MAP_SPRITE_LAYER);
+		int x = i % sprite_map->w;
+		int y = i / sprite_map->w;
+		int id = get_tile_id(sprite_map, x, y);
+		if (id != ~0) {
+			aabb_t bounds = get_tile_bounds(sprite_map, x, y);
+			sprite_t sprite = make_sprite(id, center(bounds).x, center(bounds).y, 1.0f, 0, MAP_SPRITE_LAYER);
 			push_sprite(sprite);
 		}
 	}

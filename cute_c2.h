@@ -923,7 +923,12 @@ float c2GJK(const void* A, C2_TYPE typeA, const c2x* ax_ptr, const void* B, C2_T
 		int iB = c2Support(pB.verts, pB.count, c2MulrvT(bx.r, d));
 		c2v sB = c2Mulxv(bx, pB.verts[iB]);
 
-		++iter;
+		c2sv* v = verts + s.count;
+		v->iA = iA;
+		v->sA = sA;
+		v->iB = iB;
+		v->sB = sB;
+		v->p = c2Sub(v->sB, v->sA);
 
 		int dup = 0;
 		for (int i = 0; i < save_count; ++i)
@@ -936,13 +941,8 @@ float c2GJK(const void* A, C2_TYPE typeA, const c2x* ax_ptr, const void* B, C2_T
 		}
 		if (dup) break;
 
-		c2sv* v = verts + s.count;
-		v->iA = iA;
-		v->sA = sA;
-		v->iB = iB;
-		v->sB = sB;
-		v->p = c2Sub(v->sB, v->sA);
 		++s.count;
+		++iter;
 	}
 
 	c2v a, b;
@@ -966,6 +966,7 @@ float c2GJK(const void* A, C2_TYPE typeA, const c2x* ax_ptr, const void* B, C2_T
 			c2v n = c2Norm(c2Sub(b, a));
 			a = c2Add(a, c2Mulvs(n, rA));
 			b = c2Sub(b, c2Mulvs(n, rB));
+			if (a.x == b.x && a.y == b.y) dist = 0;
 		}
 
 		else
@@ -1498,6 +1499,7 @@ void c2AABBtoCapsuleManifold(c2AABB A, c2Capsule B, c2Manifold* m)
 	p.count = 4;
 	c2Norms(p.verts, p.norms, 4);
 	c2CapsuletoPolyManifold(B, &p, 0, m);
+	m->n = c2Neg(m->n);
 }
 
 void c2CapsuletoCapsuleManifold(c2Capsule A, c2Capsule B, c2Manifold* m)
@@ -1695,6 +1697,7 @@ void c2CapsuletoPolyManifold(c2Capsule A, const c2Poly* B, const c2x* bx_ptr, c2
 		c2h h;
 		if (!c2SidePlanes(seg, bx, B, index, &h)) return;
 		c2KeepDeep(seg, h, m);
+		m->n = c2Neg(m->n);
 	}
 
 	// shallow, use GJK results a and b to define manifold
@@ -1717,9 +1720,10 @@ void c2CapsuletoPolyManifold(c2Capsule A, const c2Poly* B, const c2x* bx_ptr, c2
 		// 1 contact
 		if (!face_case)
 		{
+			one_contact:
 			m->count = 1;
-			m->n = c2Neg(c2Norm(ab));
-			m->contact_points[0] = c2Add(a, c2Mulvs(m->n, -A.r));
+			m->n = c2Norm(ab);
+			m->contact_points[0] = c2Add(a, c2Mulvs(m->n, A.r));
 			m->depths[0] = A.r - d;
 		}
 
@@ -1731,8 +1735,9 @@ void c2CapsuletoPolyManifold(c2Capsule A, const c2Poly* B, const c2x* bx_ptr, c2
 			c2AntinormalFace(A, B, bx, &index, &n);
 			c2v seg[2] = { c2Add(A.a, c2Mulvs(n, A.r)), c2Add(A.b, c2Mulvs(n, A.r)) };
 			c2h h;
-			if (!c2SidePlanes(seg, bx, B, index, &h)) return;
+			if (!c2SidePlanes(seg, bx, B, index, &h)) goto one_contact;
 			c2KeepDeep(seg, h, m);
+			m->n = c2Neg(m->n);
 		}
 	}
 }
