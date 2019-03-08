@@ -62,8 +62,8 @@ void crate_update(crate_t* crate, float dt)
 	crate->vel += v2(0, -100.0f) * dt;
 
 	// Make sure it's hard to shoot the crate super far for any reason.
-	if (crate->vel.x > 5.0f) crate->vel.x = 5.0f;
-	if (crate->vel.x < -5.0f) crate->vel.x = -5.0f;
+	const float max_vel_x = 7.5f;
+	crate->vel.x = clamp(crate->vel.x, -max_vel_x, max_vel_x);
 
 	// Apply heavy damping on lower velocities.
 	if (crate->vel.x < 1.0f) crate->vel.x *= 1.0f / (1.0f + dt * crate_damp_factor * crate_damp_factor);
