@@ -112,7 +112,7 @@ int player_can_fall(player2d_t* player, int pixels_to_fall)
 
 # Zero Gravity Strategy
 
-A great thing about disabling gravity is that "floaty" artifacts can be avoided entirely. Here is what I mean by "floaty artifacts":
+A great thing about disabling gravity when "on ground" is that "floaty" artifacts can be avoided entirely. Here is what I mean by "floaty artifacts":
 
 ![screenshot 4](/screenshots/float.gif?raw=true)
 
