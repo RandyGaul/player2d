@@ -2,11 +2,15 @@
 
 An example demo showing one way to implement swept 2D character controller from scratch. The [cute_headers](https://github.com/RandyGaul/cute_headers) repository is heavily used to implement the low-level guts of all algorithms in the demo, such as sprite batching, image loading, music/sound fx playing, and collisions.
 
+![screenshot 1](/screenshots/fabulous_demo.gif?raw=true)
+
 # Controls
 
 * Press wasd in the demo to move the player
 * The demo prints out controls for the editor to stdout - press RIGHT-CLICK TO enable the editor
 * Press G to turn ON/OFF debug rendering
+
+![screenshot 2](/screenshots/fabulous_capsule.gif?raw=true)
 
 # Swept Character Controller
 
@@ -56,3 +60,60 @@ Cons:
 * Requires a bit of knowledge about the underlying algorithms to identify root causes of bugs.
 * Lots of mathematics and geometry.
 * Lots of work to implement robustly.
+
+# Case Study - Standing on Edges
+
+![screenshot 3](/screenshots/edge_fall.gif?raw=true)
+
+Here is an example of nuanced behavior. This character controller is designed to primarily use the capsule for interaction with the world. However, I wanted the player to be able to stand on the edge of ledges without slipping on the capsule's round surface, to get a "retro feel" when platforming.
+
+The strategy I chose was to disable gravity when the player is detected on the ground. Then, I use an AABB shape and find a TOI with a downward velocity. If I find an acceptable TOI, I re-apply gravity and clear the players "on_ground" flag.
+
+By crafting a strong API around `c2TOI` it becomes very simple to create these custom predicates, such as "can fall". Here's the source to check whether or not the player can fall:
+
+```cpp
+// shapecast downward to see if the player has space to fall, or not, using
+// the player's AABB shape
+int player_can_fall(player2d_t* player, int pixels_to_fall)
+{
+	float min_toi = 1;
+
+	c2AABB player_aabb;
+	player_aabb.min = c2(player->box.min);
+	player_aabb.max = c2(player->box.max);
+
+	v2 vel_down_10_pixels = v2(0, (float)-pixels_to_fall);
+
+	for (int i = 0; i < map.count; ++i)
+	{
+		int x = i % map.w;
+		int y = i / map.w;
+		int id = get_tile_id(&map, x, y);
+		if (!is_empty_tile(id)) {
+			tile_t tile = get_tile(&map, x, y);
+
+			v2 toi_normal;
+			v2 toi_contact;
+			int iters;
+			float toi = c2TOI(&tile.u, tile_id_to_c2_type(tile.id), 0, c2V(0, 0), &player_aabb, C2_AABB, 0, c2(vel_down_10_pixels), 1, 0, 0, &iters);
+			if (toi < min_toi) {
+				min_toi = toi;
+			}
+		}
+	}
+
+	if (min_toi == 1.0f) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+```
+
+A great thing about disabling gravity is that "floaty" artifacts can be avoided entirely. Here is what I mean by "floaty artifacts":
+
+![screenshot 4](/screenshots/float.gif?raw=true)
+
+In the above image gravity is always applied, and gravity is used to keep the player on the ground. If instead gravity is turned off, and an "on ground" flag is used, a different implementation can be made. Instead, it's possible to raycast downward from the player's center, and "follow" the ground explicitly. This way the player can run on a flat surface, and onto a sloped surface, without floating in the air at all, and without using a huge gravity value.
+
+I have not yet implemented this feature in the demo, and instead simply deal with "floaty" artifacts. They can easy be seen when the player runs down the sloped tiles in the demo.
