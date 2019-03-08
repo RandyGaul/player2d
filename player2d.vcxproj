@@ -139,6 +139,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="crate.h" />
     <ClInclude Include="debug_draw.h" />
     <ClInclude Include="hero.h" />
     <ClInclude Include="map.h" />
