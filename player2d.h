@@ -10,8 +10,6 @@ struct player2d_t
 	v2 vel;
 	aabb_t box;
 	capsule_t capsule;
-	v2 seg_a;
-	v2 seg_b;
 	int on_ground;
 	int can_jump;
 };
@@ -23,15 +21,6 @@ void player_sync_geometry(player2d_t* player)
 	player->capsule.a.y += 2.0f;
 	player->capsule.b = c2(player->pos + v2(0, -PLAYER_HEIGHT / 2.0f + player->capsule.r));
 	player->box = make_aabb(player->pos, PLAYER_HALF_WIDTH * 2.0f, PLAYER_HEIGHT);
-	player->seg_a = player->pos + v2(0, PLAYER_HEIGHT / 2.0f);
-	player->seg_b = player->pos + v2(0, -PLAYER_HEIGHT / 2.0f);
-}
-
-float player_shapecast_against_tile(capsule_t capsule, v2* n, v2* context, v2 vel, tile_t tile)
-{
-	// treat player like line-segment against sloped tiles
-	// and a capsule against AABBs
-	return 1;
 }
 
 // sweep player against the world geometry

@@ -342,9 +342,8 @@ void main_loop()
 
 	// draw player
 	if (showing_debug) {
-	draw_capsule(player.capsule);
-	draw_aabb(player.box);
-	gl_line(gfx, player.seg_a.x, player.seg_a.y, 0, player.seg_b.x, player.seg_b.y, 0);
+		draw_capsule(player.capsule);
+		draw_aabb(player.box);
 	}
 
 	// special "on the ground" state
