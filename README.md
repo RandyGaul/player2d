@@ -127,6 +127,7 @@ Lots of features can be tacked onto the demo here to spice things up. The sweep/
 * Player dash effect (the TOI functions will gracefully handle high speeds)
 * Raycast downwards while "on ground" to follow slopes gracefully
 * Crate stacking
+* One-way platforms (top left of demo - unimplemented)
 * Standing on top of crates
 * Slide-dash - use a different collider depending on the controller state (like a sideways capsule while sliding)
 * Ducking/crouching
