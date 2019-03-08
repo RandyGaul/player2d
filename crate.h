@@ -140,8 +140,6 @@ void crate_vel_fixup(crate_t* crate, float inv_dt)
 {
 	v2 delta = crate->pos - crate->old_pos;
 	crate->vel = delta * inv_dt;
-	printf("inv dt %f\n", inv_dt);
-	printf("vel x %f\n", delta.x);
 }
 
 #endif // CRATE_IMPLEMENTATION_ONCE
