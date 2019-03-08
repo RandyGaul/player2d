@@ -58,7 +58,7 @@ hero_t hero;
 background_t background;
 
 #include <crate.h>
-#define NUM_CRATES 2
+#define NUM_CRATES 3
 crate_t crates[NUM_CRATES];
 
 void* read_file_to_memory(const char* path, int* size)
@@ -219,7 +219,9 @@ void main_loop()
 	}
 #endif
 
-#if 0
+#include <c2_tests.h>
+
+#if 1
 	static int my_x;
 	static int my_y;
 	static int capture_mouse = 1;
@@ -236,18 +238,20 @@ void main_loop()
 	cap.r = 11.0f;
 
 	c2Poly poly;
-	poly.verts[0] = c2V(16 - 50, -24);
-	poly.verts[1] = c2V(32 - 50, -24);
-	poly.verts[2] = c2V(32 - 50, -8);
-	poly.verts[3] = c2V(16 - 50, -8);
-	poly.count = 4;
+	poly.verts[0] = c2V(16 - 50, -30);
+	poly.verts[1] = c2V(50 - 50, -30);
+	poly.verts[2] = c2V(50 - 50, -8);
+	poly.count = 3;
 	c2Norms(poly.verts, poly.norms, 4);
 
 	draw_capsule(cap);
 	draw_poly(poly);
+	gl_line(gfx, cap.a.x, cap.a.y, 0, cap.b.x, cap.b.y, 0);
 
 	c2Manifold m;
 	c2CapsuletoPolyManifold(cap, &poly, 0, &m);
+	//c2Collide(&cap, 0, C2_CAPSULE, &poly, 0, C2_POLY, &m);
+	//c2Collide(&poly, 0, C2_POLY, &cap, 0, C2_CAPSULE, &m);
 	if (m.count) draw_manifold(m);
 #endif
 
@@ -313,6 +317,9 @@ void main_loop()
 		player.pos += vel * toi;
 		player_sync_geometry(&player);
 
+		// ngs out of potentially colliding configurations
+		player_ngs(&player);
+
 		if (toi == 1) break;
 		t *= toi;
 
@@ -323,9 +330,6 @@ void main_loop()
 		if (iters == 1 && t == 0) {
 			player.pos = player.vel * dt;
 		}
-
-		// ngs out of potentially colliding configurations
-		player_ngs(&player);
 
 		// Let player jump and set ground if toi ever hits a flat plane pointing up
 		// while the player is falling, only if they are hit near the feet.
@@ -446,6 +450,15 @@ void main_loop()
 	hero_update(&hero, dt);
 	hero_draw(&hero, player.pos);
 
+	static float cloud0_x = 0;
+	static float cloud1_x = 0;
+	sprite_t cloud = make_sprite(156, 50 + cloud0_x, 65, 1, 0, 0);
+	push_sprite(cloud);
+	cloud = make_sprite(156, -100 + cloud1_x, 80, 1, 0, 0);
+	push_sprite(cloud);
+	cloud0_x += 1.0f * dt;
+	cloud1_x += 3.0f * dt;
+
 	// Run cute_spritebatch to find sprite batches.
 	// This is the most basic usage of cute_psritebatch, one defrag, tick and flush per game loop.
 	// It is also possible to only use defrag once every N frames.
@@ -554,12 +567,16 @@ int main(int argc, char** argv)
 	background_init(&background);
 	crate_init(&crates[0], v2(60.0f, -40.0f));
 	crate_init(&crates[1], v2(-87.795204f, 0));
+	crate_init(&crates[2], v2(-60.795204f, 100));
+	crates[1].image_id = CRATE_IMAGE_ID_BOX2_PLAIN;
+	crates[2].image_id = CRATE_IMAGE_ID_BOX3_SLASH;
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
 	printf("Press G to toggle drawing debug info.\n");
 
 	player.capsule.r = PLAYER_HALF_WIDTH;
-	player.pos = v2(36.3215637f, 37.36820793f);
+	player.pos = v2(-30, -20);
+	player_sync_geometry(&player);
 
 	while (application_running)
 		main_loop();

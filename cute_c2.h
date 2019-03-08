@@ -1693,10 +1693,11 @@ void c2CapsuletoPolyManifold(c2Capsule A, const c2Poly* B, const c2x* bx_ptr, c2
 		c2v n;
 		int index;
 		c2AntinormalFace(A, B, bx, &index, &n);
-		c2v seg[2] = { c2Add(A.a, c2Mulvs(n, A.r)), c2Add(A.b, c2Mulvs(n, A.r)) };
+		c2v seg[2] = { A.a, A.b };
 		c2h h;
 		if (!c2SidePlanes(seg, bx, B, index, &h)) return;
 		c2KeepDeep(seg, h, m);
+		for (int i = 0; i < m->count; ++i) m->contact_points[i] = c2Add(m->contact_points[i], c2Mulvs(n, A.r));
 		m->n = c2Neg(m->n);
 	}
 
@@ -1710,7 +1711,7 @@ void c2CapsuletoPolyManifold(c2Capsule A, const c2Poly* B, const c2x* bx_ptr, c2
 		for (int i = 0; i < B->count; ++i)
 		{
 			c2v n = c2Mulrv(bx.r, B->norms[i]);
-			if (c2Parallel(ab, n, 5.0e-3f))
+			if (c2Parallel(c2Neg(ab), n, 5.0e-3f))
 			{
 				face_case = 1;
 				break;

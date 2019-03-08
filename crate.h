@@ -59,7 +59,7 @@ void crate_update(crate_t* crate, float dt)
 	crate->vel *= 1.0f / (1.0f + dt * crate_damp_factor);
 
 	// Gravity.
-	crate->vel += v2(0, -100.0f) * dt;
+	crate->vel += v2(0, -200.0f) * dt;
 
 	// Make sure it's hard to shoot the crate super far for any reason.
 	const float max_vel_x = 7.5f;
