@@ -195,7 +195,7 @@ CUTE_MATH2D_INLINE float width(aabb_t bb) { return bb.max.x - bb.min.x; }
 CUTE_MATH2D_INLINE float height(aabb_t bb) { return bb.max.y - bb.min.y; }
 CUTE_MATH2D_INLINE float half_width(aabb_t bb) { return width(bb) * 0.5f; }
 CUTE_MATH2D_INLINE float half_height(aabb_t bb) { return height(bb) * 0.5f; }
-CUTE_MATH2D_INLINE v2 half_extents(aabb_t bb) { return (bb.max - bb.min) * 0.5f; };
+CUTE_MATH2D_INLINE v2 half_extents(aabb_t bb) { return (bb.max - bb.min) * 0.5f; }
 CUTE_MATH2D_INLINE v2 extents(aabb_t aabb) { return aabb.max - aabb.min; }
 CUTE_MATH2D_INLINE aabb_t expand(aabb_t aabb, v2 v) { return make_aabb(aabb.min - v, aabb.max + v); }
 CUTE_MATH2D_INLINE aabb_t expand(aabb_t aabb, float v) { v2 factor(v, v); return make_aabb(aabb.min - factor, aabb.max + factor); }

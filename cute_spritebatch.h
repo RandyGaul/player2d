@@ -140,7 +140,7 @@
 
 #ifndef SPRITEBATCH_U64
 	#define SPRITEBATCH_U64 unsigned long long
-#endif SPRITEBATCH_U64
+#endif // SPRITEBATCH_U64
 
 typedef struct spritebatch_t spritebatch_t;
 typedef struct spritebatch_config_t spritebatch_config_t;

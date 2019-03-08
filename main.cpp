@@ -57,6 +57,10 @@ hero_t hero;
 #include <background.h>
 background_t background;
 
+#include <crate.h>
+#define NUM_CRATES 2
+crate_t crates[NUM_CRATES];
+
 void* read_file_to_memory(const char* path, int* size)
 {
 	void* data = 0;
@@ -79,20 +83,16 @@ void* read_file_to_memory(const char* path, int* size)
 
 void load_tile_images()
 {
-	int count = 0;
-	int i = 0;
 	char path[1024];
 
-	while (count < image_count)
-	{
-		assert(count < 140);
-		sprintf(path, "art/tile%d.png", i++);
+	for (int count = 0; count < image_count; count++) {
+		sprintf(path, "art/tile%d.png", count);
 		int size;
 		void* file = read_file_to_memory(path, &size);
 		if (!file) continue;
 		cp_image_t img = cp_load_png_mem(file, size);
 		assert(img.pix);
-		images[count++] = img;
+		images[count] = img;
 		free(file);
 	}
 }
@@ -342,9 +342,9 @@ void main_loop()
 
 	// draw player
 	if (showing_debug) {
-	draw_capsule(player.capsule);
-	draw_aabb(player.box);
-	gl_line(gfx, player.seg_a.x, player.seg_a.y, 0, player.seg_b.x, player.seg_b.y, 0);
+		draw_capsule(player.capsule);
+		draw_aabb(player.box);
+		gl_line(gfx, player.seg_a.x, player.seg_a.y, 0, player.seg_b.x, player.seg_b.y, 0);
 	}
 
 	// special "on the ground" state
@@ -431,6 +431,11 @@ void main_loop()
 
 	// TODO
 	// Add some moveable crates
+	for (int i = 0; i < NUM_CRATES; i++) {
+		crate_ngs(&crates[i], player.capsule);
+		crate_draw(&crates[i]);
+		crate_update(&crates[i], dt);
+	}
 
 	// Hero's animation controller
 	hero_update(&hero, dt);
@@ -542,6 +547,8 @@ int main(int argc, char** argv)
 	setup_spritebatch();
 	hero_init(&hero);
 	background_init(&background);
+	crate_init(&crates[0], v2(-60.0f, -40.0f));
+	crate_init(&crates[1], v2(-87.795204f, -20.0f));
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
 	printf("Press G to toggle drawing debug info.\n");
@@ -566,5 +573,8 @@ int main(int argc, char** argv)
 
 #define BACKGROUND_IMPLEMENTATION
 #include <background.h>
+
+#define CRATE_IMPLEMENTATION
+#include <crate.h>
 
 #include <glad/glad.c>
