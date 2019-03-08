@@ -134,3 +134,13 @@ Lots of features can be tacked onto the demo here to spice things up. The sweep/
 * Double jumping
 * Corner grabbing
 * Many more!
+
+# Special Thanks
+
+Special thanks to these people for contributing to this demo:
+
+* bsvercl - implementing crates, and many other various goodies in the demo
+* Collin Meredith - funky music
+* Bakudas - Animation for the player
+* JPKotzeGames - The tile drawings
+* Max Klassen - Help with the initial setup of the demo
