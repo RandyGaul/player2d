@@ -26,14 +26,14 @@ inline C2_TYPE tile_id_to_c2_type(int id)
 {
 	switch (id)
 	{
-	default: // fall-thru
-	case 0: return C2_NONE;
-	case 1: return C2_AABB;
-	case 2: return C2_POLY;
+	default: return C2_AABB;
+	case -1: return C2_NONE;
+	case 107: case 108: return C2_POLY;
 	}
 }
 
 int get_tile_id(map_t* map, int x, int y);
+int is_empty_tile(int id);
 void get_tile_xy_from_world_pos(map_t* map, v2 pos, int* x, int* y);
 aabb_t get_tile_bounds(map_t* map, int x, int y);
 tile_t get_tile(map_t* map, int x, int y);
@@ -57,6 +57,16 @@ int get_tile_id(map_t* map, int x, int y)
 	assert(x < map->w);
 	assert(y < map->h);
 	return map->tiles[map->w * y + x];
+}
+
+int is_empty_tile(int id)
+{
+	switch (id)
+	{
+	default: return 0;
+	case -1: case 118: case 119: case 120: case 121: case 133: case 134: case 135: case 20:
+		return 1;
+	}
 }
 
 void get_tile_xy_from_world_pos(map_t* map, v2 pos, int* x, int* y)
@@ -83,18 +93,26 @@ tile_t get_tile(map_t* map, int x, int y)
 	tile_t tile;
 	tile.id = get_tile_id(map, x, y);
 
-	if (tile.id) {
+	if (!is_empty_tile(tile.id)) {
 		switch (tile.id)
 		{
-		default: assert(0);
-		case 1: tile.u.box = c2(bounds); break;
-		case 2:
+		default: tile.u.box = c2(bounds); break;
+		case 107:
 		{
 			tile.u.poly.verts[0] = c2(top_left(bounds));
 			tile.u.poly.verts[1] = c2(bottom_left(bounds));
 			tile.u.poly.verts[2] = c2(bottom_right(bounds));
+			tile.u.poly.verts[3] = c2((top_right(bounds) + bottom_right(bounds)) * 0.5f);
+			tile.u.poly.count = 4;
+			c2Norms(tile.u.poly.verts, tile.u.poly.norms, tile.u.poly.count);
+		}	break;
+		case 108:
+		{
+			tile.u.poly.verts[0] = c2((top_left(bounds) + bottom_left(bounds)) * 0.5f);
+			tile.u.poly.verts[1] = c2(bottom_left(bounds));
+			tile.u.poly.verts[2] = c2(bottom_right(bounds));
 			tile.u.poly.count = 3;
-			c2Norms(tile.u.poly.verts, tile.u.poly.norms, 3);
+			c2Norms(tile.u.poly.verts, tile.u.poly.norms, tile.u.poly.count);
 		}	break;
 		}
 	}
@@ -109,12 +127,11 @@ void debug_draw_map(map_t* map)
 		int x = i % map->w;
 		int y = i / map->w;
 		tile_t tile = get_tile(map, x, y);
-		if (tile.id) {
+		if (!is_empty_tile(tile.id)) {
 			switch (tile.id)
 			{
-			default: assert(0);
-			case 1: draw_aabb(c2(tile.u.box)); break;
-			case 2: draw_poly(tile.u.poly); break;
+			default: draw_aabb(c2(tile.u.box)); break;
+			case 107: case 108: draw_poly(tile.u.poly); break;
 			}
 		}
 	}

@@ -115,16 +115,14 @@ void crate_ngs(crate_t* crate, capsule_t capsule)
 			int x = i % map.w;
 			int y = i / map.w;
 			int id = get_tile_id(&map, x, y);
-			if (id) {
+			if (!is_empty_tile(id)) {
 				tile_t tile = get_tile(&map, x, y);
-				if (!tile.id) continue;
-				c2AABB tile_aabb = tile.u.box;
 
 				c2Manifold m;
-				c2AABBtoAABBManifold(crate->aabb, tile_aabb, &m);
+				c2Collide(&tile.u, 0, tile_id_to_c2_type(tile.id), &crate->aabb, 0, C2_AABB, &m);
 				if (m.count) {
 					hit_something = 1;
-					v2 n = c2(m.n);
+					v2 n = -c2(m.n);
 					const float corrective_factor = 0.2f;
 					crate->pos -= n * corrective_factor * m.depths[0];
 					crate_sync_geometry(crate);

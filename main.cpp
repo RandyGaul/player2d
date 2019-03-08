@@ -408,7 +408,7 @@ void main_loop()
 
 		if (ctrl_is_down && c_is_pressed) {
 			tile_selection = sprite_map.tiles[tile_y * sprite_map.w + tile_x];
-			printf("Copied tile from map to mouse.\n");
+			printf("Copied tile %d from map to mouse.\n", tile_selection);
 		}
 
 		if (ctrl_is_down && s_is_pressed) {
@@ -546,14 +546,14 @@ int main(int argc, char** argv)
 {
 	sdl_setup();
 	cute_gl_setup();
-	load_map(&map, "map.txt");
+	load_map(&map, "map_sprites.txt");
 	load_map(&sprite_map, "map_sprites.txt");
 	load_tile_images();
 	setup_spritebatch();
 	hero_init(&hero);
 	background_init(&background);
-	crate_init(&crates[0], v2(-60.0f, -40.0f));
-	crate_init(&crates[1], v2(-87.795204f, -20.0f));
+	crate_init(&crates[0], v2(60.0f, -40.0f));
+	crate_init(&crates[1], v2(-87.795204f, 0));
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
 	printf("Press G to toggle drawing debug info.\n");

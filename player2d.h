@@ -36,9 +36,8 @@ float player_sweep(capsule_t capsule, v2* n, v2* contact, v2 vel)
 		int x = i % map.w;
 		int y = i / map.w;
 		int id = get_tile_id(&map, x, y);
-		if (id) {
+		if (!is_empty_tile(id)) {
 			tile_t tile = get_tile(&map, x, y);
-			if (!tile.id) continue;
 
 			v2 toi_normal;
 			v2 toi_contact;
@@ -78,9 +77,8 @@ void player_ngs(player2d_t* player)
 			int x = i % map.w;
 			int y = i / map.w;
 			int id = get_tile_id(&map, x, y);
-			if (id) {
+			if (!is_empty_tile(id)) {
 				tile_t tile = get_tile(&map, x, y);
-				if (!tile.id) continue;
 
 				c2Manifold m;
 				c2Collide(&tile.u, 0, tile_id_to_c2_type(tile.id), &player_copy.capsule, 0, C2_CAPSULE, &m);
@@ -119,9 +117,8 @@ int player_can_fall(player2d_t* player, int pixels_to_fall)
 		int x = i % map.w;
 		int y = i / map.w;
 		int id = get_tile_id(&map, x, y);
-		if (id) {
+		if (!is_empty_tile(id)) {
 			tile_t tile = get_tile(&map, x, y);
-			if (!tile.id) continue;
 
 			v2 toi_normal;
 			v2 toi_contact;
