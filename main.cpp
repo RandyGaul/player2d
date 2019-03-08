@@ -58,7 +58,8 @@ hero_t hero;
 background_t background;
 
 #include <crate.h>
-crate_t crate;
+#define NUM_CRATES 2
+crate_t crates[NUM_CRATES];
 
 void* read_file_to_memory(const char* path, int* size)
 {
@@ -394,9 +395,11 @@ void main_loop()
 
 	// TODO
 	// Add some moveable crates
-	crate_player_collision(&crate, &player);
-	crate_draw(&crate);
-	crate_update(&crate, dt);
+	for (int i = 0; i < NUM_CRATES; i++) {
+		crate_ngs(&crates[i], player.capsule);
+		crate_draw(&crates[i]);
+		crate_update(&crates[i], dt);
+	}
 
 	// Hero's animation controller
 	hero_update(&hero, dt);
@@ -508,7 +511,8 @@ int main(int argc, char** argv)
 	setup_spritebatch();
 	hero_init(&hero);
 	background_init(&background);
-	crate_init(&crate, v2(-87.795204f, -46.0f));
+	crate_init(&crates[0], v2(-87.795204f, -40.0f));
+	crate_init(&crates[1], v2(-87.795204f, -20.0f));
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
 	printf("Press G to toggle drawing debug info.\n");
