@@ -511,7 +511,7 @@ int main(int argc, char** argv)
 	setup_spritebatch();
 	hero_init(&hero);
 	background_init(&background);
-	crate_init(&crates[0], v2(-87.795204f, -40.0f));
+	crate_init(&crates[0], v2(-60.0f, -40.0f));
 	crate_init(&crates[1], v2(-87.795204f, -20.0f));
 
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
