@@ -88,7 +88,6 @@ void player_ngs(player2d_t* player)
 					const float corrective_factor = 0.2f;
 					player_copy.pos += n * corrective_factor;
 					player_sync_geometry(&player_copy);
-					draw_manifold(m);
 				}
 			}
 		}
