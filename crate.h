@@ -66,7 +66,7 @@ void crate_update(crate_t* crate, float dt)
 	crate->vel.x = clamp(crate->vel.x, -max_vel_x, max_vel_x);
 
 	// Apply heavy damping on lower velocities.
-	if (crate->vel.x < 1.0f) crate->vel.x *= 1.0f / (1.0f + dt * crate_damp_factor * crate_damp_factor);
+	if (abs(crate->vel.x) < 2.0f) crate->vel.x *= 1.0f / (1.0f + dt * crate_damp_factor * crate_damp_factor);
 
 	crate->old_pos = crate->pos;
 	crate->pos += crate->vel * dt;
