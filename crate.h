@@ -35,6 +35,7 @@ void crate_update(crate_t* crate, float dt);
 void crate_draw(crate_t* crate);
 void crate_init(crate_t* crate, v2 pos);
 void crate_ngs(crate_t* crate, capsule_t capsule);
+void crate_vel_fixup(crate_t* crate, float dt);
 
 #endif // CRATE_H
 
@@ -53,7 +54,20 @@ void crate_sync_geometry(crate_t* crate)
 
 void crate_update(crate_t* crate, float dt)
 {
+	// Large friction (well, actually it's damping).
+	const float crate_damp_factor = 2.5f;
+	crate->vel *= 1.0f / (1.0f + dt * crate_damp_factor);
+
+	// Gravity.
 	crate->vel += v2(0, -100.0f) * dt;
+
+	// Make sure it's hard to shoot the crate super far for any reason.
+	if (crate->vel.x > 5.0f) crate->vel.x = 5.0f;
+
+	// Apply heavy damping on lower velocities.
+	if (crate->vel.x < 1.0f) crate->vel.x *= 1.0f / (1.0f + dt * crate_damp_factor * crate_damp_factor);
+
+	crate->old_pos = crate->pos;
 	crate->pos += crate->vel * dt;
 }
 
@@ -119,11 +133,15 @@ void crate_ngs(crate_t* crate, capsule_t capsule)
 		if (!hit_something) break;
 	}
 	if (iters == max_iters) printf("NGS failed to converge.\n");
-	if (hit_something) {
-		crate->vel = crate->pos - crate->old_pos;
-	}
 	crate_sync_geometry(crate);
-	crate->old_pos = crate->pos;
+}
+
+void crate_vel_fixup(crate_t* crate, float inv_dt)
+{
+	v2 delta = crate->pos - crate->old_pos;
+	crate->vel = delta * inv_dt;
+	printf("inv dt %f\n", inv_dt);
+	printf("vel x %f\n", delta.x);
 }
 
 #endif // CRATE_IMPLEMENTATION_ONCE

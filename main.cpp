@@ -435,9 +435,11 @@ void main_loop()
 	// TODO
 	// Add some moveable crates
 	for (int i = 0; i < NUM_CRATES; i++) {
-		crate_ngs(&crates[i], player.capsule);
-		crate_draw(&crates[i]);
-		crate_update(&crates[i], dt);
+		crate_t* crate = crates + i;
+		crate_update(crate, dt);
+		crate_ngs(crate, player.capsule);
+		crate_draw(crate);
+		crate_vel_fixup(crate, inv_dt);
 	}
 
 	// Hero's animation controller
