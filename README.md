@@ -143,7 +143,7 @@ Do whatever you want with the code! The character controller here can be a great
 
 # Q/A
 
-Since this repository is educational feel free to ask questions! A good way to ask questions about the concepts here is to [open up a github issue](https://github.com/RandyGaul/player2d/issues/new) and ask whatever you like.
+Since this repository is educational feel free to ask questions! A good way to ask questions about the concepts here is to [open up a github issue](https://github.com/RandyGaul/player2d/issues/new) and ask whatever you like - I enjoy talking about game physics whenever I get a chance :)
 
 # Special Thanks
 
