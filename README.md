@@ -1,6 +1,6 @@
 # player2d
 
-An example demo showing one way to implement swept 2D character controller from scratch. The [cute_headers](https://github.com/RandyGaul/cute_headers) repository is heavily used to implement the low-level guts of all algorithms in the demo, such as sprite batching, image loading, music/sound fx playing, and collisions.
+An example demo showing one way to implement swept 2D character controller from scratch. The [cute_headers](https://github.com/RandyGaul/cute_headers) repository is heavily used to implement the low-level guts of all algorithms in the demo, such as sprite batching, image loading, music/sound fx playing, and collisions. This demo was originally created to showcase the concepts outlined in somes [slides](https://github.com/RandyGaul/player2d/blob/master/slides/R.Gaul_Character_Controllers.pptx) I wrote for a local university recently.
 
 ![screenshot 1](/screenshots/fabulous_demo.gif?raw=true)
 
