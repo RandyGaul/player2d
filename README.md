@@ -136,6 +136,10 @@ Lots of features can be tacked onto the demo here to spice things up. The sweep/
 * Corner grabbing
 * Many more!
 
+# License
+
+Do whatever you want with the code! The character controller here can be a great start to implementing your own character controller in your own game. I do not have plans to expand the demo much further, but, if anyone comes along and wants to submit a pull-request to implement more features, I will be more than happy to take a look and try merging it in. The above list of ideas for extended features is a good list of things I'd be especially interested in seeing come alive :)
+
 # Special Thanks
 
 Special thanks to these people for contributing to this demo:
