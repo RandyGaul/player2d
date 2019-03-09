@@ -6,6 +6,18 @@
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
 
+#define STB_VORBIS_HEADER_ONLY
+#include <stb_vorbis.c>
+
+#define CUTE_SOUND_IMPLEMENTATION
+#define CUTE_SOUND_FORCE_SDL
+#include <cute_sound.h>
+cs_context_t* cs;
+cs_loaded_sound_t audio_src_blue_suit_jam;
+cs_loaded_sound_t audio_src_jump;
+cs_playing_sound_t music_blue_suit_jam;
+cs_playing_sound_t sound_jump;
+
 #define CUTE_GL_IMPLEMENTATION
 #include <cute_gl.h>
 
@@ -35,7 +47,7 @@ gl_context_t* gfx;
 gl_shader_t sprite_shader;
 gl_renderable_t sprite_renderable;
 float projection[16];
-bool showing_debug = true;
+bool showing_debug = false;
 
 #include <debug_draw.h>
 #include <map.h>
@@ -265,6 +277,7 @@ void main_loop()
 		player.can_jump = 0;
 		player.on_ground = 0;
 		hero_set_state(&hero, HERO_STATE_JUMP);
+		cs_insert_sound(cs, &sound_jump);
 	}
 
 	// sweep player through the world across the timestep
@@ -537,8 +550,23 @@ int main(int argc, char** argv)
 	crates[1].image_id = CRATE_IMAGE_ID_BOX2_PLAIN;
 	crates[2].image_id = CRATE_IMAGE_ID_BOX3_SLASH;
 
+	// setup cute_sound
+	cs = cs_make_context(0, 44100, 15, 5, 0);
+	cs_spawn_mix_thread(cs);
+
+	// load audio
+	audio_src_blue_suit_jam = cs_load_ogg("audio/3-6-19-blue-suit-jam.ogg");
+	audio_src_jump = cs_load_wav("audio/jump.wav");
+	music_blue_suit_jam = cs_make_playing_sound(&audio_src_blue_suit_jam);
+	sound_jump = cs_make_playing_sound(&audio_src_jump);
+
+	// loop the music
+	cs_loop_sound(&music_blue_suit_jam, 1);
+	cs_set_volume(&music_blue_suit_jam, 0.5f, 0.5f);
+	cs_insert_sound(cs, &music_blue_suit_jam);
+
 	printf("Press RIGHT-CLICK to turn ON/OFF the editor (starts OFF by default).\n");
-	printf("Press G to toggle drawing debug info.\n");
+	printf("Press G to toggle drawing debug info (starts OFF by default).\n");
 
 	player.capsule.r = PLAYER_HALF_WIDTH;
 	player.pos = v2(-30, -20);
@@ -566,3 +594,8 @@ int main(int argc, char** argv)
 #include <crate.h>
 
 #include <glad/glad.c>
+
+// vorbis should usually be last
+// since it leaks defines and stuff
+#undef STB_VORBIS_HEADER_ONLY
+#include <stb_vorbis.c>
