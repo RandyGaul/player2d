@@ -60,6 +60,7 @@ Cons:
 * Requires a bit of knowledge about the underlying algorithms to identify root causes of bugs.
 * Lots of mathematics and geometry.
 * Lots of work to implement robustly.
+* Some sensitivity to "acute" angles for NGS. Not explicitly handled in this demo (for simplicity). Instead, high NGS iterations are used. Ideally an explicit code path can detect acute cases and apply a specific solution.
 
 # Case Study - Standing on Edges
 
