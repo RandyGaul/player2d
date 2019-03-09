@@ -10,7 +10,7 @@
 #include <stb_vorbis.c>
 
 #define CUTE_SOUND_IMPLEMENTATION
-define CUTE_SOUND_FORCE_SDL
+#define CUTE_SOUND_FORCE_SDL
 #include <cute_sound.h>
 cs_context_t* cs;
 cs_loaded_sound_t audio_src_blue_suit_jam;
