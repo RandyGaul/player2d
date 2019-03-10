@@ -364,7 +364,6 @@ void main_loop()
 				" > Scroll the mouse wheel to cycle through the various available tiles.\n"
 				" > Hit ctrl + s to save the sprite map.\n"
 				" > Hit ctrl + c to copy the currently hovered tile to the mouse selection.\n"
-				" > Note: The editor can not edit the collision map. This must be done by hand in a text editor.\n"
 			);
 		}
 	}
