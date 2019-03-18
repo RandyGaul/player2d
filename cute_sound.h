@@ -265,7 +265,7 @@
 #if CUTE_SOUND_PLATFORM == CUTE_SOUND_SDL
 
 	#include <SDL2/SDL.h>
-	
+
 #endif
 
 #include <stdint.h>
@@ -1844,7 +1844,14 @@ void cs_mix(cs_context_t* ctx)
 #elif CUTE_SOUND_PLATFORM == CUTE_SOUND_MAC || CUTE_SOUND_PLATFORM == CUTE_SOUND_SDL
 
 	int samples_to_write = cs_sampels_to_mix(ctx);
-	if (!samples_to_write) goto unlock;
+	// TODO: this fails when using GCC or Clang
+	// GCC: error: jump to label ‘unlock’ [-fpermissive]
+	// Clang: error: cannot jump from this goto statement to its label
+	// if (!samples_to_write) goto unlock;
+	if (!samples_to_write) {
+		cs_unlock(ctx);
+		return;
+	}
 	int bytes_to_write = samples_to_write * ctx->bps;
 
 #else
@@ -2063,7 +2070,7 @@ void cs_mix(cs_context_t* ctx)
 
 #else
 #endif
-	unlock:
+unlock:
 	cs_unlock(ctx);
 }
 
