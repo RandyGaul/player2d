@@ -1,6 +1,9 @@
-player2d : main.cpp
-	g++ -I. -L. main.cpp -o $@ -ldl -lSDL2 -std=c++11
+CXXFLAGS = -I. -std=c++11
+LDFLAGS = -lSDL2 -ldl
 
-.PHONY: clean
-clean : 
+player2d : main.cpp
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) main.cpp -o $@
+
+.PHONY: clean player2d
+clean :
 	rm player2d
