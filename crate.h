@@ -34,7 +34,7 @@ void crate_sync_geometry(crate_t* crate);
 void crate_update(crate_t* crate, float dt);
 void crate_draw(crate_t* crate);
 void crate_init(crate_t* crate, v2 pos);
-void crate_ngs(crate_t* crate, capsule_t capsule);
+void crate_ngs(crate_t* crate, capsule_t capsule, crate_t* crates);
 void crate_vel_fixup(crate_t* crate, float dt);
 
 #endif // CRATE_H
@@ -88,8 +88,9 @@ void crate_init(crate_t* crate, v2 pos)
 	crate->image_id = CRATE_IMAGE_ID_BOX1_CROSS;
 }
 
-// TODO: Collision with other crates
-void crate_ngs(crate_t* crate, capsule_t capsule)
+// NOTE: crates is an array
+// TODO: maybe use the global from main?
+void crate_ngs(crate_t* crate, capsule_t capsule, crate_t* crates)
 {
 	// collision with player capsule
 	for (int i = 0; i < 10; ++i)
@@ -100,6 +101,27 @@ void crate_ngs(crate_t* crate, capsule_t capsule)
 			v2 n = c2(m.n);
 			crate->pos -= n * 0.025f * m.depths[0];
 			crate_sync_geometry(crate);
+		}
+	}
+
+	// collision with other crate
+	for (int i = 0; i < 20; ++i) {
+		for (int j = 0 ; j < NUM_CRATES; ++j) {
+			crate_t* other = &crates[j];
+			// don't collide with itself
+			if (crate == other) {
+				continue;
+			}
+			c2Manifold m;
+			c2AABBtoAABBManifold(crate->aabb, other->aabb, &m);
+			if (m.count) {
+				v2 n = c2(m.n);
+				v2 push = n * 0.025f * m.depths[0];
+				crate->pos -= push;
+				other->pos += push;
+				crate->vel = crate->pos - crate->old_pos;
+				other->vel = other->pos - other->old_pos;
+			}
 		}
 	}
 

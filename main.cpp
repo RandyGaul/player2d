@@ -179,7 +179,7 @@ void main_loop()
 			if (key == SDLK_s) s_is_pressed = 1;
 			if (key == SDLK_c) c_is_pressed = 1;
 			if (key == SDLK_SPACE) space_is_pressed = 1;
-			
+
 			if (key == SDLK_g) showing_debug = !showing_debug;
 		}	break;
 
@@ -419,7 +419,7 @@ void main_loop()
 	for (int i = 0; i < NUM_CRATES; i++) {
 		crate_t* crate = crates + i;
 		crate_update(crate, dt);
-		crate_ngs(crate, player.capsule);
+		crate_ngs(crate, player.capsule, crates);
 		crate_draw(crate);
 		crate_vel_fixup(crate, inv_dt);
 	}
@@ -501,7 +501,7 @@ void cute_gl_setup()
 
 	const char* ps = SHADER_STR(
 		precision mediump float;
-	
+
 		uniform sampler2D u_sprite_texture;
 
 		in vec2 v_uv;
@@ -521,7 +521,7 @@ void cute_gl_setup()
 	gl_make_renderable(&sprite_renderable, &vd);
 	gl_load_shader(&sprite_shader, vs, ps);
 	gl_set_shader(&sprite_renderable, &sprite_shader);
-	
+
 	gl_ortho_2d((float)640 / 2.0f, (float)480 / 2.0f, 0, 0, projection);
 	glViewport(0, 0, 640, 480);
 
